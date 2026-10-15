@@ -1,0 +1,642 @@
+/* guessIo redesign v2.9.4 — hand-written shared styles.
+   Ported 1:1 from the mockups' shared shim (theme helpers, tiles, keys, press,
+   desktop layer). Tailwind-equivalent utilities live in ui.css (generated). */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes count {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+}
+
+/* Mobile browser chrome makes 100vh taller than the visible viewport. Use
+   dynamic viewport units for the shared full-screen utilities while leaving
+   content-heavy pages normally scrollable. */
+@media (max-width: 767px) {
+  html,
+  body,
+  #root {
+    min-height: 100dvh;
+  }
+
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+
+  .h-screen {
+    height: 100dvh;
+  }
+
+  /* Keep the compact play setup within common phone viewports so its primary
+     action is visible without changing the larger-screen spacing. */
+  .play-main > .mt-7 {
+    margin-top: 1rem;
+  }
+
+  .play-main > .mt-8 {
+    margin-top: 1rem;
+  }
+}
+
+/* The mockup shim adds .press to every a.cut / button.cut at load. */
+a.cut,
+button.cut {
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.28);
+  transition:
+    transform 0.06s,
+    box-shadow 0.06s;
+}
+a.cut:active,
+button.cut:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.28);
+}
+html {
+  background: #050807;
+  -webkit-tap-highlight-color: transparent;
+}
+.cut {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+.sweep-ring {
+  background: conic-gradient(
+    from 0deg,
+    rgba(18, 224, 96, 0.45),
+    transparent 30%
+  );
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+:focus-visible {
+  outline: 2px solid #12e060;
+  outline-offset: 2px;
+}
+.tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid #1e2b25;
+  background: #121b17;
+  color: #8c9c95;
+  font-family: Orbitron, Barlow, sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tile.c {
+  background: #12e060;
+  color: #03140a;
+  border-color: #12e060;
+}
+.tile.p {
+  background: #ffb01f;
+  color: #2a1a00;
+  border-color: #ffb01f;
+}
+.tile.w {
+  background: #161f1b;
+  color: #6f7f78;
+  border-color: #1e2b25;
+}
+.tile.raw {
+  background: #0c1210;
+  color: #eef3f0;
+}
+.flip {
+  animation: flip 0.45s ease-out both;
+}
+@keyframes flip {
+  0% {
+    transform: rotateX(90deg);
+    opacity: 0.2;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+.shake {
+  animation: shake 0.3s;
+}
+@keyframes shake {
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+.tile.cur {
+  border-color: #12e060;
+  box-shadow: 0 0 0 2px rgba(18, 224, 96, 0.25);
+}
+.key {
+  box-shadow:
+    0 3px 0 #000,
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition:
+    transform 0.06s,
+    box-shadow 0.06s;
+}
+.key:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.lock {
+  animation: pop 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.go {
+  box-shadow: 0 3px 0 #0b9c45;
+}
+.go:active {
+  transform: translateY(3px);
+  box-shadow: none;
+}
+.latch {
+  animation: latch 0.2s ease-out both;
+}
+@keyframes latch {
+  50% {
+    transform: scale(1.1);
+    border-color: #12e060;
+  }
+}
+.keys-off {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+.flip {
+  animation-duration: 0.5s;
+  transform-origin: center;
+}
+button.p-2,
+a.p-2 {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.press {
+  box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.28);
+  transition:
+    transform 0.06s,
+    box-shadow 0.06s;
+}
+.press:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.28);
+}
+.surface {
+  background: linear-gradient(180deg, #121b17 0%, #0c1210 100%);
+}
+
+/* Keep gameplay controls fixed to the mobile viewport; only the guess board
+   should scroll when there are more rows than the available space. */
+@media (max-width: 767px) {
+  #root > main.gameplay-main {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  #root > main.gameplay-main > .board-scroll {
+    min-height: 0;
+  }
+}
+
+/* =========================================================
+   guessIo — Desktop responsive layer
+   Keeps the mobile composition intact below 768px.
+   ========================================================= */
+@media (min-width: 768px) {
+  html {
+    min-width: 100%;
+  }
+  body {
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Desktop page frame */
+  #root > main {
+    max-width: 1180px !important;
+    width: 100% !important;
+    min-height: 100vh;
+    padding-left: 32px !important;
+    padding-right: 32px !important;
+    padding-bottom: 48px !important;
+  }
+
+  /* Give the top bar real desktop breathing room */
+  #root > main > header {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    padding-top: 28px !important;
+  }
+
+  /* Most mobile screens use full-width sections; on desktop
+     they become a readable content column rather than a
+     giant stretched mobile card. */
+  #root > main > section {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Primary content width */
+  #root > main > section:not(.desktop-wide) {
+    width: 100%;
+  }
+
+  /* Home / profile / settings style surfaces */
+  #root > main .surface {
+    max-width: 100%;
+  }
+
+  /* Where a screen has several direct sections, give the
+     page a two-column desktop rhythm without changing markup. */
+  #root > main > section + section {
+    margin-top: 32px !important;
+  }
+
+  /* Tables/lists use the available desktop width */
+  #root > main .divide-y,
+  #root > main table,
+  #root > main [role="table"] {
+    width: 100%;
+  }
+
+  /* Desktop-friendly cards */
+  #root > main .rounded-md,
+  #root > main .rounded-lg,
+  #root > main .rounded-xl,
+  #root > main .rounded-2xl {
+    box-sizing: border-box;
+  }
+
+  /* Keep controls comfortably sized */
+  #root > main button,
+  #root > main a.cut {
+    min-height: 44px;
+  }
+
+  /* Gameplay is the exception: keep the play area visually
+     dominant and centered rather than stretching controls. */
+  #root > main.gameplay-main {
+    max-width: 1280px !important;
+  }
+
+  /* Bottom/mobile navigation should not remain floating in
+     the middle of a desktop page. */
+  #root > nav.bottom-nav {
+    max-width: 1180px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: calc(100% - 64px);
+    border-radius: 16px 16px 0 0;
+  }
+
+  /* Overlays become centered desktop dialogs instead of
+     mobile bottom sheets. */
+  .ov {
+    align-items: center !important;
+    padding: 32px !important;
+  }
+  .ov > div {
+    width: min(560px, 100%) !important;
+    max-width: 560px !important;
+    border: 1px solid #1e2b25 !important;
+    border-radius: 16px !important;
+    padding: 28px !important;
+  }
+
+  /* Error/auth pages: preserve the mobile hierarchy but
+     give the desktop version a comfortable reading width. */
+  #root > main:has(.text-center) {
+    max-width: 900px !important;
+  }
+
+  /* Prevent very wide text blocks */
+  #root > main p {
+    max-width: 760px;
+  }
+
+  /* Restore full width for compact metadata rows */
+  #root > main .flex {
+    max-width: none;
+  }
+}
+
+@media (min-width: 1100px) {
+  #root > main {
+    padding-left: 48px !important;
+    padding-right: 48px !important;
+  }
+
+  #root > main > header {
+    padding-top: 34px !important;
+  }
+}
+
+@media (min-width: 1440px) {
+  #root > main {
+    max-width: 1280px !important;
+  }
+}
+
+/* Existing product behaviour kept from v3: UI text isn't selectable; inputs are. */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Login "call sign" animation: phrase swipe (same timing as before) */
+.phrase {
+  opacity: 0;
+  transform: translateX(40px);
+  text-shadow: 0 0 22px rgba(18, 224, 96, 0.35);
+}
+.phrase.swipe-in {
+  animation: swipeIn 0.5s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+.phrase.swipe-out {
+  animation: swipeOut 0.4s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+@keyframes swipeIn {
+  0% {
+    opacity: 0;
+    transform: translateX(46px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes swipeOut {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-46px);
+  }
+}
+
+/* Auth: desktop = brand + stage left, actions right (mobile is the mockup column unchanged) */
+@media (min-width: 768px) {
+  #root > main.auth-main {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(340px, 400px);
+    column-gap: 0;
+    align-items: center;
+    max-width: 1040px !important;
+    min-height: min(720px, calc(100vh - 64px));
+    padding: 48px !important;
+    background: linear-gradient(135deg, #121b17 0%, #0c1210 100%);
+    border: 1px solid #1e2b25;
+    border-radius: 16px;
+  }
+  #root > main.auth-main > section {
+    padding: 0 !important;
+    margin-top: 0 !important;
+  }
+  #root > main.auth-main > section.auth-intro {
+    padding-right: 64px !important;
+  }
+  #root > main.auth-main > section.auth-actions {
+    align-self: center;
+    padding-left: 64px !important;
+    border-left: 1px solid #1e2b25;
+  }
+  #root > main.auth-main > section.auth-actions > div {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  #root > main.auth-main .auth-intro .max-w-\[30ch\] {
+    max-width: 34ch;
+  }
+}
+
+/* Gameplay (ported from 08-gameplay.html) */
+.panel {
+  transition:
+    box-shadow 0.3s,
+    background 0.3s;
+}
+.panel.on {
+  background: linear-gradient(180deg, rgba(18, 224, 96, 0.12), #0c1210 65%);
+  box-shadow:
+    inset 0 2px 0 #12e060,
+    0 -22px 44px -22px rgba(18, 224, 96, 0.5);
+}
+.panel.on .tile.cur {
+  animation: charge 1.4s ease-in-out infinite;
+}
+@keyframes charge {
+  50% {
+    box-shadow:
+      0 0 0 3px rgba(18, 224, 96, 0.4),
+      0 0 18px rgba(18, 224, 96, 0.55);
+  }
+}
+.tile.flip.c {
+  animation-name: flipc;
+  animation-duration: 0.85s;
+}
+@keyframes flipc {
+  0% {
+    transform: rotateX(90deg);
+    opacity: 0.2;
+  }
+  55% {
+    transform: none;
+    opacity: 1;
+    box-shadow: none;
+  }
+  75% {
+    box-shadow: 0 0 18px 4px rgba(18, 224, 96, 0.8);
+  }
+  100% {
+    box-shadow: none;
+  }
+}
+.board-scroll {
+  -webkit-mask-image: linear-gradient(transparent, #000 28px);
+  mask-image: linear-gradient(transparent, #000 28px);
+}
+.tile.lock {
+  animation: snap 0.16s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+@keyframes snap {
+  0% {
+    transform: translateY(-12px) scale(1.2);
+    border-color: #12e060;
+  }
+  60% {
+    transform: translateY(2px) scale(0.95);
+  }
+  100% {
+    transform: none;
+  }
+}
+.go.armed {
+  animation: arm 0.6s ease-out;
+}
+@keyframes arm {
+  40% {
+    box-shadow:
+      0 3px 0 #0b9c45,
+      0 0 0 5px rgba(18, 224, 96, 0.5);
+  }
+}
+
+/* Leaderboard podium (ported from 12-leaderboards.html) */
+.spot {
+  background: radial-gradient(
+    60% 70% at 50% 42%,
+    rgba(18, 224, 96, 0.24),
+    transparent 70%
+  );
+  animation: breathe 5s ease-in-out infinite;
+}
+@keyframes breathe {
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes grow {
+  from {
+    transform: scaleY(0.15);
+    opacity: 0;
+  }
+}
+@keyframes shine {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+.col {
+  animation: up 0.6s ease-out both;
+  animation-delay: var(--d);
+}
+.ped {
+  transform-origin: bottom;
+  animation: grow 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: var(--d);
+  border-radius: 14px 14px 0 0;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  padding-top: 10px;
+  font-family: Orbitron, sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+}
+.ped2,
+.ped3 {
+  background: linear-gradient(180deg, #22302a, #0f1713);
+  box-shadow: inset 0 2px 0 #34463e;
+  color: #8c9c95;
+}
+.ped1 {
+  background: linear-gradient(180deg, #22f074, #0b9c45 92%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.4),
+    0 0 44px -8px rgba(18, 224, 96, 0.6);
+  color: #03140a;
+  overflow: hidden;
+}
+.ped1:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  animation: shine 4s ease-in-out infinite;
+}
+.ring1 {
+  position: relative;
+}
+.ring1:before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  background: conic-gradient(#12e060, transparent 45%, #12e060);
+  animation: sweep 5s linear infinite;
+}
+.ring1 > span {
+  position: relative;
+  box-shadow: 0 0 0 3px #050807;
+}

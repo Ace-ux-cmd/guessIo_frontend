@@ -1,0 +1,2282 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>guessIo - Game Guide</title>
+    <meta
+      name="description"
+      content="guessIo Game Guide: complete rules, modes, progression, and screen map."
+    />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="guessIo" />
+    <meta property="og:title" content="guessIo - Game Guide" />
+    <meta
+      property="og:description"
+      content="guessIo Game Guide: complete rules, modes, progression, and screen map."
+    />
+    <meta property="og:url" content="https://guessio.online/doc.html" />
+    <meta
+      property="og:image"
+      content="https://guessio.online/assets/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="guessIo - Game Guide" />
+    <meta
+      name="twitter:description"
+      content="guessIo Game Guide: complete rules, modes, progression, and screen map."
+    />
+    <meta
+      name="twitter:image"
+      content="https://guessio.online/assets/og-image.png"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Orbitron:wght@500;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/doc.css" />
+
+    <style>
+      :root {
+        --green: #12e060;
+        --green-dim: #0b9c45;
+        --cyan: #2fd8e8;
+        --purple: #a855f7;
+        --orange: #ff9a3c;
+        --red: #e8434f;
+        --yellow: #ffb01f;
+        --line: #1e2a26;
+        --panel: #0a0f0d;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        background: #000;
+        color: #f2f5f4;
+        font-family: "Barlow", sans-serif;
+        overflow-x: hidden;
+      }
+
+      .grid-bg {
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(18, 224, 96, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(18, 224, 96, 0.035) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: radial-gradient(
+          ellipse 90% 60% at 50% 0%,
+          black 0%,
+          transparent 70%
+        );
+        -webkit-mask-image: radial-gradient(
+          ellipse 90% 60% at 50% 0%,
+          black 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .notch {
+        clip-path: polygon(
+          0 0,
+          calc(100% - 14px) 0,
+          100% 14px,
+          100% 100%,
+          14px 100%,
+          0 calc(100% - 14px)
+        );
+      }
+      .notch-sm {
+        clip-path: polygon(
+          0 0,
+          calc(100% - 8px) 0,
+          100% 8px,
+          100% 100%,
+          8px 100%,
+          0 calc(100% - 8px)
+        );
+      }
+      .wordmark span {
+        text-shadow: 0 0 14px currentColor;
+      }
+      .wm-g {
+        color: var(--green);
+      }
+      .wm-u {
+        color: var(--cyan);
+      }
+      .wm-e {
+        color: var(--purple);
+      }
+      .wm-s1 {
+        color: var(--orange);
+      }
+      .wm-s2 {
+        color: var(--red);
+      }
+      .wm-io {
+        color: #f2f5f4;
+        font-style: italic;
+        margin-left: 1px;
+      }
+
+      .eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 3px;
+        color: var(--gray, #596969);
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+      }
+
+      .tile {
+        font-family: "Orbitron", sans-serif;
+        font-weight: 900;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #0a0f0d;
+        border: 1px solid var(--line);
+        clip-path: polygon(0 6px, 6px 0, 100% 0, 100% 100%, 0 100%);
+        color: #f2f5f4;
+      }
+      .tile.correct {
+        background: rgba(18, 224, 96, 0.14);
+        border-color: var(--green);
+        color: var(--green);
+      }
+      .tile.present {
+        background: rgba(255, 176, 31, 0.12);
+        border-color: var(--yellow);
+        color: var(--yellow);
+      }
+      .tile.wrong {
+        color: #3d4b46;
+        border-color: var(--line);
+      }
+
+      @keyframes pulse-dot {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.25;
+        }
+      }
+      .pulse-dot {
+        animation: pulse-dot 1.6s ease-in-out infinite;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .pulse-dot {
+          animation: none;
+        }
+      }
+
+      ::selection {
+        background: rgba(18, 224, 96, 0.3);
+        color: #fff;
+      }
+      .glow-text {
+        text-shadow: 0 0 30px rgba(18, 224, 96, 0.35);
+      }
+
+      .corner {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--green-dim);
+        opacity: 0.55;
+      }
+      .corner.tl {
+        top: 0;
+        left: 0;
+        border-right: none;
+        border-bottom: none;
+      }
+      /* ---- doc-specific ---- */
+      .doc-nav a {
+        display: block;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid var(--line);
+        padding: 10px 14px;
+        text-align: left;
+        font-family: "Barlow", sans-serif;
+        font-size: 15px;
+      }
+      th {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: #9ca8a2;
+        background: rgba(30, 42, 38, 0.4);
+      }
+      tr:nth-child(even) td {
+        background: rgba(255, 255, 255, 0.015);
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border: 1px solid var(--line);
+      }
+      .doc-section {
+        scroll-margin-top: 90px;
+      }
+
+      code.inline {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 0.88em;
+        background: rgba(18, 224, 96, 0.08);
+        color: var(--green);
+        padding: 1px 6px;
+        border: 1px solid rgba(18, 224, 96, 0.2);
+      }
+
+      .callout {
+        border-left: 3px solid var(--cyan);
+        background: rgba(47, 216, 232, 0.05);
+        padding: 14px 18px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #000;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--line);
+        border: 2px solid #000;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--green-dim);
+      }
+    </style>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/page.css" />
+    <link rel="canonical" href="https://guessio.online/doc.html" />
+  </head>
+  <body class="antialiased">
+    <div class="grid-bg"></div>
+
+    <!-- ============ NAV ============ -->
+    <header
+      class="fixed top-0 inset-x-0 z-50 border-b border-line/80 backdrop-blur bg-black/80"
+    >
+      <div
+        class="max-w-7xl mx-auto px-5 md:px-8 h-16 flex items-center justify-between"
+      >
+        <a
+          href="https://guessio.online/"
+          class="wordmark font-display font-black text-xl lowercase flex items-center gap-3"
+        >
+          <span class="flex"
+            ><span class="wm-g">g</span><span class="wm-u">u</span
+            ><span class="wm-e">e</span><span class="wm-s1">s</span
+            ><span class="wm-s2">s</span><span class="wm-io">Io</span></span
+          >
+          <span
+            class="hidden sm:inline font-body font-semibold text-xs text-gray normal-case tracking-normal border-l border-line pl-3"
+            >Game Guide</span
+          >
+        </a>
+        <div class="flex items-center gap-4">
+          <span
+            class="hidden md:inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-widest text-gray"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full bg-green shadow-[0_0_6px_#12E060] pulse-dot"
+            ></span>
+            v1.0
+          </span>
+          <a
+            href="https://guessio.online/"
+            class="hidden sm:inline font-body font-semibold text-sm text-ink/70 hover:text-ink"
+            >Home</a
+          >
+          <a
+            href="https://play.guessio.online"
+            class="hidden sm:inline font-body font-semibold text-sm text-green hover:text-ink"
+            >Play now</a
+          >
+          <button
+            id="toc-toggle"
+            class="lg:hidden text-ink w-9 h-9 flex items-center justify-center border border-line notch-sm"
+            aria-label="Open table of contents"
+          >
+            <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+              <path d="M0 1H18" stroke="currentColor" stroke-width="1.6" />
+              <path d="M0 7H18" stroke="currentColor" stroke-width="1.6" />
+              <path d="M0 13H18" stroke="currentColor" stroke-width="1.6" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ MOBILE TOC DRAWER ============ -->
+    <div id="toc-drawer" class="hidden fixed inset-0 z-40 lg:hidden">
+      <div id="toc-backdrop" class="absolute inset-0 bg-black/80"></div>
+      <div
+        class="absolute top-16 right-0 bottom-0 w-72 bg-black border-l border-line overflow-y-auto p-5 doc-nav font-body text-sm flex flex-col"
+      ></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-5 md:px-8 pt-16 relative">
+      <div class="lg:grid lg:grid-cols-[240px_1fr] lg:gap-12">
+        <!-- ============ DESKTOP SIDEBAR TOC ============ -->
+        <aside
+          class="hidden lg:block sticky top-24 self-start h-[calc(100vh-7rem)] overflow-y-auto py-10 pr-2 doc-nav font-body text-sm"
+        >
+          <div class="eyebrow mb-4">Contents</div>
+          <nav id="toc" class="space-y-1 text-ink/60 leading-relaxed">
+            <a href="#sec-1" class="hover:text-ink transition-colors py-1"
+              >1. What Is guessIo?</a
+            >
+            <a href="#sec-2" class="hover:text-ink transition-colors py-1"
+              >2. The Core Loop</a
+            >
+            <a href="#sec-3" class="hover:text-ink transition-colors py-1"
+              >3. Standard vs Hardcore</a
+            >
+            <a href="#sec-4" class="hover:text-ink transition-colors py-1"
+              >4. Player Counts & Rounds</a
+            >
+            <a href="#sec-5" class="hover:text-ink transition-colors py-1"
+              >5. Match Types</a
+            >
+            <a href="#sec-6" class="hover:text-ink transition-colors py-1"
+              >6. Practice / Guest Mode</a
+            >
+            <a href="#sec-7" class="hover:text-ink transition-colors py-1"
+              >7. Reserved Players</a
+            >
+            <a href="#sec-8" class="hover:text-ink transition-colors py-1"
+              >8. Points & Rating</a
+            >
+            <a href="#sec-9" class="hover:text-ink transition-colors py-1"
+              >9. Achievements</a
+            >
+            <a href="#sec-10" class="hover:text-ink transition-colors py-1"
+              >10. Leaderboards</a
+            >
+            <a href="#sec-11" class="hover:text-ink transition-colors py-1"
+              >11. Match History</a
+            >
+            <a href="#sec-12" class="hover:text-ink transition-colors py-1"
+              >12. Accounts & Access</a
+            >
+            <a href="#sec-13" class="hover:text-ink transition-colors py-1"
+              >13. Help & Feedback</a
+            >
+            <a href="#sec-14" class="hover:text-ink transition-colors py-1"
+              >14. Visual & Brand Identity</a
+            >
+            <a href="#sec-15" class="hover:text-ink transition-colors py-1"
+              >15. Screen Map</a
+            >
+          </nav>
+        </aside>
+
+        <!-- ============ MAIN CONTENT ============ -->
+        <main id="top" class="min-w-0 py-10 md:py-14">
+          <!-- ============ TITLE BLOCK ============ -->
+          <div class="mb-14 relative">
+            <div
+              class="corner tl hidden md:block"
+              style="top: -1.5rem; left: -1.5rem"
+            ></div>
+            <div class="eyebrow flex items-center gap-2 mb-5">
+              <span
+                class="w-1.5 h-1.5 rounded-full bg-green shadow-[0_0_8px_#12E060] pulse-dot"
+              ></span>
+              PRODUCT & GAMEPLAY DOCUMENTATION
+            </div>
+            <h1
+              class="font-display font-black text-3xl sm:text-4xl md:text-5xl leading-[1.1] mb-6"
+            >
+              guessIo <span class="text-green glow-text">Game Guide</span>
+            </h1>
+            <p
+              class="font-body text-lg text-ink/70 max-w-2xl leading-relaxed mb-6"
+            >
+              A complete, plain-language guide to how guessIo works: match
+              rules, difficulty modes, progression, reserved players, accounts,
+              and every screen in the app.
+            </p>
+          </div>
+
+          <!-- ============ SECTION 1 ============ -->
+          <section
+            id="sec-1"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 01</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              What Is guessIo?
+            </h2>
+            <div
+              class="font-body text-ink/80 leading-relaxed space-y-4 max-w-3xl"
+            >
+              <p>
+                <strong class="text-ink">
+                  <span class="wordmark inline-flex"
+                    ><span class="wm-g">g</span><span class="wm-u">u</span
+                    ><span class="wm-e">e</span><span class="wm-s1">s</span
+                    ><span class="wm-s2">s</span
+                    ><span class="wm-io">Io</span></span
+                  ></strong
+                >
+                is a real-time, competitive, multiplayer
+                <strong class="text-ink">code-breaking game</strong>. It runs as
+                a web app / installable Progressive Web App (PWA), working in a
+                browser on phone or desktop or a downloadable mobile app.
+              </p>
+              <p>
+                The one-line pitch, taken from the app's own install listing:
+              </p>
+              <p class="font-display text-xl text-green glow-text py-2">
+                "Analyse → Outsmart → Crack the Code."
+              </p>
+            </div>
+            <div class="grid sm:grid-cols-3 gap-4 mt-8 max-w-3xl">
+              <div class="panel notch-sm p-5">
+                <div
+                  class="font-mono text-[11px] uppercase tracking-widest text-gray mb-2"
+                >
+                  Genre
+                </div>
+                <p class="font-body text-ink/75 leading-snug">
+                  A logic-deduction game where everyone races head-to-head to
+                  crack the same code.
+                </p>
+              </div>
+              <div class="panel notch-sm p-5">
+                <div
+                  class="font-mono text-[11px] uppercase tracking-widest text-gray mb-2"
+                >
+                  Look & feel
+                </div>
+                <p class="font-body text-ink/75 leading-snug">
+                  A colored tile grid where every tile is a digit (0-9), never a
+                  letter.
+                </p>
+              </div>
+              <div class="panel notch-sm p-5">
+                <div
+                  class="font-mono text-[11px] uppercase tracking-widest text-gray mb-2"
+                >
+                  Tone
+                </div>
+                <p class="font-body text-ink/75 leading-snug">
+                  Sharp, dark and competitive. A precision duel of logic.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 2 ============ -->
+          <section
+            id="sec-2"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 02</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              How a Match Works: The Core Loop
+            </h2>
+
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-8"
+            >
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  The secret code
+                </h3>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    Each <strong class="text-ink">round</strong> has one secret
+                    code, generated by the system: a string of
+                    <strong class="text-ink">unique digits</strong> (0-9, no
+                    repeats), a length that depends on the mode.
+                  </li>
+                  <li>
+                    A leading zero is allowed: a code like
+                    <code class="inline">0473</code> is valid.
+                  </li>
+                  <li>
+                    <strong class="text-ink">One shared code per round.</strong>
+                    Every player at the table is trying to crack the same code;
+                    nobody is guessing an opponent's personal code. True in
+                    every mode, including 2-player, 3-player, 4-player, and solo
+                    Practice Mode.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Starting a match and between rounds
+                </h3>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    When a match is found, a
+                    <strong class="text-ink">5-second countdown</strong> runs
+                    before round 1.
+                  </li>
+                  <li>
+                    After each round (unless the match just ended), a Round
+                    Result screen shows for 5 seconds, then the next round
+                    starts automatically. It shows who cracked the code (or
+                    "Round drawn"), how many turns it took, the revealed code,
+                    the running score, the round time and the fastest guess.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Turn order
+                </h3>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    Players take turns in a fixed rotation for that round.
+                  </li>
+                  <li>
+                    The rotation's starting player changes each round (round 2
+                    starts with whoever was second in round 1, and so on), so no
+                    one player is stuck always going last.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Making a guess
+                </h3>
+                <p class="mb-4">
+                  On your turn, you enter a guess of the same length as the
+                  secret code, using unique digits (no repeats allowed in your
+                  guess either). After you submit, you get feedback on every
+                  digit you guessed:
+                </p>
+
+                <div class="overflow-x-auto">
+                  <table class="mb-4">
+                    <thead>
+                      <tr>
+                        <th>Feedback</th>
+                        <th>Meaning</th>
+                        <th>Standard-mode color</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong class="text-green">Correct</strong></td>
+                        <td>
+                          That digit is in the code, in the exact position you
+                          guessed
+                        </td>
+                        <td>
+                          <span class="inline-flex items-center gap-2"
+                            ><span class="w-3 h-3 bg-green inline-block"></span
+                            >Green</span
+                          >
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong class="text-yellow">Present</strong></td>
+                        <td>
+                          That digit is in the code, but in a different position
+                        </td>
+                        <td>
+                          <span class="inline-flex items-center gap-2"
+                            ><span class="w-3 h-3 bg-yellow inline-block"></span
+                            >Yellow</span
+                          >
+                        </td>
+                      </tr>
+                      <tr>
+                        <td><strong class="text-ink/50">Wrong</strong></td>
+                        <td>That digit is not in the code at all</td>
+                        <td>
+                          <span class="inline-flex items-center gap-2"
+                            ><span class="w-3 h-3 bg-gray inline-block"></span
+                            >Gray</span
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <!-- example tile row -->
+                <div class="flex gap-2 mb-4">
+                  <div class="tile correct w-12 h-12 text-xl">4</div>
+                  <div class="tile present w-12 h-12 text-xl">7</div>
+                  <div class="tile wrong w-12 h-12 text-xl">2</div>
+                  <div class="tile wrong w-12 h-12 text-xl">9</div>
+                </div>
+
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    This feedback is <strong class="text-ink">private</strong>:
+                    in online matches, only you see the color-coded result of
+                    your own guesses. Other players see what digits you guessed,
+                    not what the colors meant for you. Exception: In local Pass
+                    & Play mode, both players share a single screen, making all
+                    feedback visible to everyone. However, the core gameplay
+                    ensures that feedback only displays for the active player
+                    whose turn it currently is.
+                  </li>
+                  <li>
+                    The
+                    <strong class="text-ink"
+                      >guess limit is a shared budget for the whole
+                      round</strong
+                    >, not a per-player allowance. If it runs out before anyone
+                    cracks the code, the round is a
+                    <strong class="text-ink">draw</strong>; nobody scores it.
+                  </li>
+                  <li>
+                    The first player to guess the exact code wins that round.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Turn timer
+                </h3>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    Each turn has a time limit;
+                    <strong class="text-ink">30 seconds by default</strong>. If
+                    it expires, that player's turn is skipped (no guess
+                    submitted) and turn passes to the next person.
+                  </li>
+                  <li>
+                    The countdown ring turns amber at 10 seconds left and red at
+                    5 on your own turn.
+                  </li>
+                  <li>
+                    A disconnected player keeps their seat for up to 60 seconds,
+                    and their turns run and time out normally. If they don't
+                    reconnect within 60 seconds, they forfeit the match and are
+                    skipped from then on.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Winning the match: best of 3 rounds
+                </h3>
+                <p class="mb-3">
+                  A match is decided over up to
+                  <strong class="text-ink">3 rounds</strong>:
+                </p>
+                <ul class="list-disc list-outside pl-5 space-y-2 mb-4">
+                  <li>Round 1 alone never decides anything.</li>
+                  <li>
+                    After round 2: if one player is strictly ahead on rounds
+                    won, they win the match immediately.
+                  </li>
+                  <li>
+                    If there's a tie after round 2, for any reason, the match
+                    always proceeds to a <strong>3rd, deciding round</strong>.
+                    Whoever's ahead after round 3 wins; if still tied, the match
+                    ends in a draw.
+                  </li>
+                </ul>
+                <div class="callout notch-sm p-4 text-sm">
+                  The same rule applies to 3 and 4-player matches: a single
+                  player strictly ahead after round 2 wins, otherwise round 3
+                  decides, and if players are still tied after round 3 the match
+                  is a draw. A dedicated tie-breaker mechanic for 3+ players
+                  (e.g., sudden-death) is planned for a later version, likely
+                  alongside tournament support.
+                </div>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Going idle
+                </h3>
+                <p>
+                  If a <strong class="text-ink">full rotation</strong> passes
+                  with nobody submitting a valid guess, everyone gets an
+                  on-screen warning. If that happens a second time in a row, the
+                  <strong class="text-ink">entire match</strong> (not just the
+                  round) is cancelled, and every player still in it is
+                  penalized: <strong class="text-red">-30 rating</strong> (flat)
+                  and
+                  <strong class="text-red"
+                    >-10% of their current Points balance</strong
+                  >. This rule applies to Casual and Ranked matches alike. Any
+                  valid guess resets the idle count.
+                </p>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Disconnecting & reconnecting
+                </h3>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    If you lose connection, you get a
+                    <strong class="text-ink">60-second grace window</strong> to
+                    reconnect before you're automatically counted as having
+                    forfeited.
+                  </li>
+                  <li>
+                    Reconnecting restores the match exactly where it is:
+                    mid-turn (with the time left on the clock), between rounds,
+                    or at the final result if the match already ended. A page
+                    refresh or a brief network blip does not knock you out.
+                  </li>
+                  <li>
+                    The app retries automatically 3 times. If that fails, a
+                    "Could not reconnect" dialog offers
+                    <strong class="text-ink">Reconnect</strong> (try again) or
+                    <strong class="text-ink">Play as guest</strong> (leave the
+                    online session and start an offline guest match).
+                  </li>
+                  <li>
+                    Refreshing or closing the tab during a live match triggers
+                    your browser's own "are you sure" prompt.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Quitting on purpose (Forfeit / Resign)
+                </h3>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    A flag button is available throughout a live match. Using it
+                    asks for confirmation ("Leaving now counts as a forfeit...
+                    this may affect your rating") before it's applied. The
+                    Escape key and the device or browser Back button open the
+                    same prompt; Back or Escape alone never forfeits.
+                  </li>
+                  <li>
+                    <strong class="text-ink"
+                      >Logging out or signing in on another platform during a
+                      match counts as a forfeit</strong
+                    >: the app warns you about this before logging you out.
+                  </li>
+                  <li>
+                    In a 2-player match, a forfeit ends the match immediately as
+                    a win for the other player. In a 3-4 player match, the match
+                    simply continues without the player who left (and if only
+                    one player remains, that player wins).
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 3 ============ -->
+          <section
+            id="sec-3"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 03</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Difficulty: Standard vs. Hardcore
+            </h2>
+            <div class="max-w-3xl font-body text-ink/80 leading-relaxed">
+              <p class="mb-5">
+                Both modes are told the
+                <strong class="text-ink"
+                  >exact same underlying information</strong
+                >
+                about each guess. The difference is purely in how that
+                information is displayed:
+              </p>
+              <div class="overflow-x-auto mb-5">
+                <table>
+                  <thead>
+                    <tr>
+                      <th></th>
+                      <th>Standard</th>
+                      <th>Hardcore</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Right digit, right position</td>
+                      <td>Shown as its own color (green)</td>
+                      <td>Shown in amber, same as any digit in the code</td>
+                    </tr>
+                    <tr>
+                      <td>Right digit, wrong position</td>
+                      <td>Shown in amber</td>
+                      <td>Shown in amber (unchanged)</td>
+                    </tr>
+                    <tr>
+                      <td>Digit not in the code</td>
+                      <td>Gray</td>
+                      <td>Gray (unchanged)</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                In short:
+                <strong class="text-ink"
+                  >Standard tells you position; Hardcore only tells you
+                  presence.</strong
+                >
+                You still see how many of your digits belong somewhere in the
+                code; you just work out which slot through further deduction.
+                Because it's harder, a Hardcore win is worth more Points than a
+                Standard win.
+              </p>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 4 ============ -->
+          <section
+            id="sec-4"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 04</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Player Counts & Round Sizes
+            </h2>
+            <div class="max-w-3xl font-body text-ink/80 leading-relaxed">
+              <p class="mb-5">
+                Online matches support 2, 3, or 4 players. Code length and the
+                shared guess budget scale with player count:
+              </p>
+              <div class="overflow-x-auto mb-5">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Players</th>
+                      <th>Code length</th>
+                      <th>Guess budget per round</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-display text-green">2</td>
+                      <td>4 digits</td>
+                      <td>10 guesses</td>
+                    </tr>
+                    <tr>
+                      <td class="font-display text-cyan">3</td>
+                      <td>5 digits</td>
+                      <td>15 guesses</td>
+                    </tr>
+                    <tr>
+                      <td class="font-display text-purple">4</td>
+                      <td>6 digits</td>
+                      <td>20 guesses</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>
+                Practice/Guest Mode uses the same code lengths but a different
+                guess budget: Easy is 4 digits with 10 guesses, Medium is 5
+                digits with 12 guesses, and Hard is 6 digits with 15 guesses.
+                Practice can be played against the computer or in local Pass &
+                Play.
+              </p>
+            </div>
+          </section>
+          <!-- ============ SECTION 5 ============ -->
+          <section
+            id="sec-5"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 05</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Ways to Play (Match Types)
+            </h2>
+            <div class="max-w-3xl font-body text-ink/80 leading-relaxed">
+              <p class="mb-5">
+                There are three ways to start an online match, chosen from the
+                "New match" screen:
+              </p>
+              <div class="overflow-x-auto mb-8">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Affects Rating?</th>
+                      <th>Earns Points?</th>
+                      <th>Saved to history/stats?</th>
+                      <th>How you get matched</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-green font-semibold">Casual</td>
+                      <td>No</td>
+                      <td>Yes</td>
+                      <td>Yes</td>
+                      <td>Matchmaking queue</td>
+                    </tr>
+                    <tr>
+                      <td class="text-cyan font-semibold">Ranked</td>
+                      <td>Yes</td>
+                      <td>Yes</td>
+                      <td>Yes</td>
+                      <td>Matchmaking queue</td>
+                    </tr>
+                    <tr>
+                      <td class="text-purple font-semibold">Private Room</td>
+                      <td>No</td>
+                      <td>No</td>
+                      <td>
+                        <strong class="text-red">No</strong>
+                      </td>
+                      <td>Via room code</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <h3 class="font-display font-bold text-lg text-ink mb-2">
+                Casual & Ranked (matchmaking)
+              </h3>
+              <ul class="list-disc list-outside pl-5 space-y-2 mb-8">
+                <li>
+                  You pick match type, difficulty, and player count, then join a
+                  queue for that exact combination.
+                </li>
+                <li>
+                  Matching is
+                  <strong class="text-ink">first-come-first-served</strong>, not
+                  based on skill or rating, even in Ranked. Whoever's next in
+                  the same queue bucket gets matched together.
+                </li>
+                <li>
+                  To ensure matches start quickly, any empty seats are filled
+                  gradually with
+                  <strong class="text-ink"
+                    >our reserved participants (one every 5 seconds)</strong
+                  >
+                  while the system continues searching for other players. This
+                  means
+                  <strong class="text-ink"
+                    >a Ranked match can feature reserved stand-ins</strong
+                  >
+                  alongside other players.
+                </li>
+              </ul>
+
+              <h3 class="font-display font-bold text-lg text-ink mb-2">
+                Private Rooms
+              </h3>
+              <ul class="list-disc list-outside pl-5 space-y-2">
+                <li>
+                  The host picks a player count and difficulty and gets a
+                  <strong class="text-ink">6-character room code</strong>
+                  (letters and numbers, excluding the easily-confused
+                  <code class="inline">I</code>, <code class="inline">O</code>,
+                  <code class="inline">0</code>, <code class="inline">1</code>).
+                </li>
+                <li>
+                  Friends join by entering that code. Player count is
+                  <strong class="text-ink"
+                    >locked once the room is created</strong
+                  >; only the host can start the match, and only once every seat
+                  is filled.
+                </li>
+                <li>
+                  <strong class="text-ink"
+                    >Difficulty is also locked once the room is created</strong
+                  >, a read-only field for the life of the room, not something
+                  the host can change mid-lobby.
+                </li>
+                <li>
+                  <strong class="text-ink"
+                    >Private matches are not saved as match records</strong
+                  >: no match-history entry, no player-statistics update, no
+                  points, and no rating change for anyone, win or lose. The
+                  in-match Results screen still displays a rounds-won tally, but
+                  there's no "View Match Details" link afterward.
+                </li>
+                <li>
+                  If the host leaves before starting, host status passes to the
+                  next player in the room automatically.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 6 ============ -->
+          <section
+            id="sec-6"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 06</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Practice / Guest Mode (No Account Needed)
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-5"
+            >
+              <p>
+                Anyone can play without creating an account, via a "Practice
+                Mode" setup screen. Two local modes:
+              </p>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="panel notch-sm p-5">
+                  <div class="font-display font-bold text-green mb-1">
+                    Vs Computer
+                  </div>
+                  <p class="text-ink/70 text-sm leading-snug">
+                    You against the computer, entirely on your device.
+                  </p>
+                </div>
+                <div class="panel notch-sm p-5">
+                  <div class="font-display font-bold text-cyan mb-1">
+                    Pass & Play
+                  </div>
+                  <p class="text-ink/70 text-sm leading-snug">
+                    Two people share one device, trading turns.
+                  </p>
+                </div>
+              </div>
+              <p>
+                This runs the <em>same</em> rules engine as online play (same
+                shared code per round, same best-of-3 structure, same
+                Standard/Hardcore feedback rules) but simplified:
+                <strong class="text-ink"
+                  >no turn timers, no disconnect handling, and no idle-cycle
+                  cancellation</strong
+                >, as there's no active online session to manage.
+              </p>
+              <p>
+                Instead of a player count, you choose a
+                <strong class="text-ink">Round Length</strong>, which has its
+                own limits, separate from the online player-count table:
+              </p>
+              <div class="overflow-x-auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Round Length</th>
+                      <th>Code length</th>
+                      <th>Guesses</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="text-green font-semibold">Easy</td>
+                      <td>4 digits</td>
+                      <td>10</td>
+                    </tr>
+                    <tr>
+                      <td class="text-cyan font-semibold">Medium</td>
+                      <td>5 digits</td>
+                      <td>12</td>
+                    </tr>
+                    <tr>
+                      <td class="text-purple font-semibold">Hard</td>
+                      <td>6 digits</td>
+                      <td>15</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <h3 class="font-display font-bold text-lg text-ink mb-1 pt-2">
+                Key differences from online play
+              </h3>
+              <ul class="list-disc list-outside pl-5 space-y-2">
+                <li>
+                  <strong class="text-ink">Nothing is saved.</strong> The app
+                  repeats this warning at setup ("Playing as guest: progress
+                  won't be saved") and again at results ("Guest match: nothing
+                  was saved"), and nudges you to create a free account
+                  afterward.
+                </li>
+                <li>
+                  If you close the tab or app mid-match, your progress is kept
+                  <strong class="text-ink">on that device only</strong>, and
+                  next time you'll be explicitly asked whether to resume it or
+                  start fresh; never silently resumed or silently thrown away.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 7 ============ -->
+          <section
+            id="sec-7"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 07</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Reserved Participants ("Temporary Stand-ins")
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-5"
+            >
+              <p>Reserved players are not random guessers. Their behavior:</p>
+              <ol class="list-decimal list-outside pl-5 space-y-2">
+                <li>
+                  Their <strong class="text-ink">first guess</strong> (or any
+                  guess before they've received feedback) is a random valid
+                  code.
+                </li>
+                <li>
+                  After that, they mentally narrow down
+                  <strong class="text-ink"
+                    >every possible code still consistent with all feedback
+                    received so far</strong
+                  >, and pick randomly from whatever's left. They genuinely
+                  deduce; they just don't always make the single mathematically
+                  "best" next guess, only a guess that's still logically
+                  possible.
+                </li>
+                <li>
+                  They pause
+                  <strong class="text-ink">2 to 15 seconds</strong> before each
+                  guess, so they don't feel instant or robotic giving other
+                  players time to think.
+                </li>
+              </ol>
+
+              <div>
+                <div
+                  class="font-mono text-[11px] uppercase tracking-widest text-gray mb-3"
+                >
+                  Names in the current pool
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    class="badge"
+                    style="color: #12e060; border-color: rgba(18, 224, 96, 0.4)"
+                    >CipherRook</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #2fd8e8;
+                      border-color: rgba(47, 216, 232, 0.4);
+                    "
+                    >NightOwl</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #a855f7;
+                      border-color: rgba(168, 85, 247, 0.4);
+                    "
+                    >QuietSignal</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #ff9a3c;
+                      border-color: rgba(255, 154, 60, 0.4);
+                    "
+                    >PixelScout</span
+                  >
+                  <span
+                    class="badge"
+                    style="color: #12e060; border-color: rgba(18, 224, 96, 0.4)"
+                    >CodeRunner</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #2fd8e8;
+                      border-color: rgba(47, 216, 232, 0.4);
+                    "
+                    >GridWalker</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #a855f7;
+                      border-color: rgba(168, 85, 247, 0.4);
+                    "
+                    >LogicFox</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #ff9a3c;
+                      border-color: rgba(255, 154, 60, 0.4);
+                    "
+                    >NeonCipher</span
+                  >
+                  <span
+                    class="badge"
+                    style="color: #12e060; border-color: rgba(18, 224, 96, 0.4)"
+                    >PrimeGuess</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #2fd8e8;
+                      border-color: rgba(47, 216, 232, 0.4);
+                    "
+                    >BytePilot</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #a855f7;
+                      border-color: rgba(168, 85, 247, 0.4);
+                    "
+                    >PatternAce</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #ff9a3c;
+                      border-color: rgba(255, 154, 60, 0.4);
+                    "
+                    >SignalDrift</span
+                  >
+                  <span
+                    class="badge"
+                    style="color: #12e060; border-color: rgba(18, 224, 96, 0.4)"
+                    >CodeMoth</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #2fd8e8;
+                      border-color: rgba(47, 216, 232, 0.4);
+                    "
+                    >QuietPixel</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #a855f7;
+                      border-color: rgba(168, 85, 247, 0.4);
+                    "
+                    >NumberFox</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #ff9a3c;
+                      border-color: rgba(255, 154, 60, 0.4);
+                    "
+                    >GridSage</span
+                  >
+                  <span
+                    class="badge"
+                    style="color: #12e060; border-color: rgba(18, 224, 96, 0.4)"
+                    >CipherTrail</span
+                  >
+                  <span
+                    class="badge"
+                    style="
+                      color: #2fd8e8;
+                      border-color: rgba(47, 216, 232, 0.4);
+                    "
+                    >NeonRook</span
+                  >
+                </div>
+                <p class="text-sm text-ink/60 mt-3">
+                  Naming pool can auto-grow beyond this list if needed, falling
+                  back to "Cipher2," "Cipher3," etc. Usernames are stored in
+                  lowercase, so these names may appear in lowercase (for example
+                  ciphertrail). The least recently used participant is picked
+                  each time, so the same name doesn't turn up in every match.
+                </p>
+              </div>
+
+              <p>
+                Our reserved players start at
+                <strong class="text-ink">Rating 0</strong>, the same starting
+                point as new accounts, so they begin on equal footing and
+                differentiate through Ranked results over time.
+              </p>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 8 ============ -->
+          <section
+            id="sec-8"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 08</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Progression: Points & Rating
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-6"
+            >
+              <p>
+                There are
+                <strong class="text-ink"
+                  >two separate progression numbers</strong
+                >, tracked and leaderboarded independently.
+              </p>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Points
+                </h3>
+                <p class="mb-3">
+                  Earned at the end of every completed match (Except Private):
+                </p>
+                <div class="overflow-x-auto mb-3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Result</th>
+                        <th>Standard</th>
+                        <th>Hardcore</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="text-green font-semibold">Win</td>
+                        <td>+3</td>
+                        <td>+5</td>
+                      </tr>
+                      <tr>
+                        <td>Draw</td>
+                        <td>+1</td>
+                        <td>+1</td>
+                      </tr>
+                      <tr>
+                        <td class="text-ink/50">Loss</td>
+                        <td>+0</td>
+                        <td>+0</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="mb-3">
+                  In 3 and 4-player matches only the match winner gets the win
+                  points. Everyone else, including players who won a round and
+                  players who forfeited, counts as a loss.
+                </p>
+                <p>
+                  If a match is cancelled for going idle, everyone remaining
+                  loses
+                  <strong class="text-red"
+                    >10% of their current Points balance</strong
+                  >
+                  (rounded to the nearest whole number).
+                </p>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Rating
+                </h3>
+                <p class="mb-3">
+                  A competitive, Elo-style number that only changes as a result
+                  of <strong class="text-ink">Ranked</strong> matches
+                  (win/lose/draw affects it; Casual and Private results never
+                  move it). Each pair of players in the match is compared
+                  head-to-head based on final placement, using a standard Elo
+                  expected-score calculation, and the results across all
+                  pairings are averaged into one rating change per player.
+                </p>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    <strong class="text-ink"
+                      >New player accounts start at a Rating of 0.</strong
+                    >
+                    Players start at the same point, so both begin on equal
+                    footing.
+                  </li>
+                  <li>
+                    The idle-cancellation penalty (a flat
+                    <strong class="text-red">-30 Rating</strong>) is applied
+                    even in Casual matches, not only Ranked.
+                  </li>
+                  <li>
+                    Placement is based on
+                    <strong class="text-ink">rounds won in the match</strong>:
+                    more than 1 round won counts as 1st, exactly 1 as 2nd, and 0
+                    as 3rd. Players in the same tier are treated as tied. This
+                    means a match winner can land in the "2nd" tier, for example
+                    when round 1 was drawn and they won round 2.
+                  </li>
+                  <li>
+                    Larger lobbies pay more: the averaged result is multiplied
+                    by <strong class="text-ink">x1.0</strong> for 2 players,
+                    <strong class="text-ink">x1.25</strong> for 3 players and
+                    <strong class="text-ink">x1.5</strong> for 4 players.
+                  </li>
+                  <li>
+                    A player who disconnects or forfeits is left out of the
+                    comparison and takes a flat
+                    <strong class="text-red">-30 Rating</strong> instead.
+                  </li>
+                  <li>
+                    In a 2-player Ranked match where the opponent leaves, the
+                    remaining player's Rating change is 0 (they still get the
+                    win and the Points). This is deliberate, to stop players
+                    losing on purpose to feed rating to a friend.
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Statistics (tracked per account)
+                </h3>
+                <p>
+                  Currently tracked and shown wherever match history/profile
+                  stats appear:
+                  <strong class="text-ink"
+                    >matches played, matches won, matches lost, matches drawn,
+                    rounds won, turns skipped, times disconnected, and times a
+                    match was cancelled for inactivity.</strong
+                  >
+                  "Total guesses" and "Match time" on a Results or Match Details
+                  screen are always calculated fresh from that specific match,
+                  not pulled from a running lifetime total.
+                </p>
+              </div>
+            </div>
+          </section>
+          <!-- ============ SECTION 09 ============ -->
+          <section
+            id="sec-9"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 09</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Achievements
+            </h2>
+            <div class="max-w-3xl font-body text-ink/80 leading-relaxed">
+              <p class="mb-5">
+                14 achievements exist. They are checked when a match is saved
+                and are <strong class="text-ink">permanent</strong>: once
+                earned, they stay earned for the life of the account.
+              </p>
+              <div class="overflow-x-auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Key</th>
+                      <th>Title</th>
+                      <th>Criteria</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-mono text-xs text-green">WELCOME</td>
+                      <td class="font-display text-green">
+                        Welcome to guessIo
+                      </td>
+                      <td>Play your first match</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">NEWBIE</td>
+                      <td class="font-display text-green">Newbie</td>
+                      <td>Win your first match</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        SHARP_GUESSER
+                      </td>
+                      <td class="font-display text-green">Sharp Guesser</td>
+                      <td>Win a round on your first guess</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">MATCHES_50</td>
+                      <td class="font-display text-green">Regular</td>
+                      <td>Play 50 matches</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">SPEEDSTER</td>
+                      <td class="font-display text-green">Speedster</td>
+                      <td>Win a round in under 1 minute</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">QUICK_DRAW</td>
+                      <td class="font-display text-green">Quick Draw</td>
+                      <td>Win a match in under 90 seconds</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        FLAWLESS_FIVE
+                      </td>
+                      <td class="font-display text-green">Flawless x5</td>
+                      <td>Win 5 matches in a row</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">FLAWLESS_TEN</td>
+                      <td class="font-display text-green">Flawless x10</td>
+                      <td>Win 10 matches in a row</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        FLAWLESS_TWENTY
+                      </td>
+                      <td class="font-display text-green">Flawless x20</td>
+                      <td>Win 20 matches in a row</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        HARDCORE_INITIATE
+                      </td>
+                      <td class="font-display text-green">Hardcore Initiate</td>
+                      <td>Win your first Hardcore match</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        TERRIBLE_GUESSER
+                      </td>
+                      <td class="font-display text-green">Terrible Guesser</td>
+                      <td>Lose 3 matches in a row</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        HARDCORE_LEGEND
+                      </td>
+                      <td class="font-display text-green">Hardcore Legend</td>
+                      <td>Win 3 Hardcore matches in a row</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">CENTURION</td>
+                      <td class="font-display text-green">Centurion</td>
+                      <td>Play 100 matches</td>
+                    </tr>
+                    <tr>
+                      <td class="font-mono text-xs text-green">
+                        FIVE_HUNDRED_MATCHES
+                      </td>
+                      <td class="font-display text-green">GuessIo Veteran</td>
+                      <td>Play 500 matches</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul class="list-disc list-outside pl-5 space-y-2 mt-5">
+                <li>
+                  <strong class="text-ink"
+                    >Wins by forfeit, quit or disconnect never count</strong
+                  >
+                  toward any achievement. A round handed to you because an
+                  opponent left doesn't count for Sharp Guesser or Speedster
+                  either: your own guess has to be the code.
+                </li>
+                <li>
+                  Streaks look at your most recent completed matches. A draw
+                  breaks a streak. Cancelled matches are ignored. Hardcore
+                  Legend only looks at Hardcore matches.
+                </li>
+                <li>
+                  Welcome, Regular, Centurion and GuessIo Veteran count matches
+                  played, not wins.
+                </li>
+              </ul>
+              <p class="mt-4">
+                <strong class="text-ink">Achievement unlocked pop-up:</strong>
+                when you earn one or more achievements, a pop-up lists them with
+                two choices: Ok, or go to the Achievements screen. It never
+                interrupts a queue, a private room or a live match. If you were
+                offline, you'll see it the next time you connect.
+              </p>
+              <p class="mt-4 text-sm text-ink/60">
+                The Profile screen shows up to four badges (unlocked first) with
+                a "See all achievements" link. The full Achievements screen
+                shows a progress bar, an Unlocked list and a Locked list. Badges
+                are styled in "green," the same tone as the rest of the app's
+                success states.
+              </p>
+              <div class="callout notch-sm p-4 text-sm mt-4">
+                <strong>Top 10</strong> is a live status displayed on your
+                profile which is tied to your current leaderboard rank rather
+                than a permanent achievement. Check the Leaderboards section
+                below to see how it works.
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 10 ============ -->
+          <section
+            id="sec-10"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 10</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Leaderboards
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-4"
+            >
+              <p>
+                Two <strong class="text-ink">separate</strong> global
+                leaderboards, matching the two progression numbers:
+              </p>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div class="panel notch-sm p-5 text-center">
+                  <div class="font-display text-xl text-green">
+                    Rating Leaderboard
+                  </div>
+                </div>
+                <div class="panel notch-sm p-5 text-center">
+                  <div class="font-display text-xl text-cyan">
+                    Points Leaderboard
+                  </div>
+                </div>
+              </div>
+              <ul class="list-disc list-outside pl-5 space-y-2">
+                <li>
+                  Each shows the <strong class="text-ink">top 20 only</strong>:
+                  a top-3 podium (displayed in 2nd-1st-3rd order left to right)
+                  followed by ranks 4 to 20.
+                </li>
+                <li>
+                  Players appear by their call sign (display name), not their
+                  username.
+                </li>
+                <li>
+                  Ties are broken by account age: the older account ranks
+                  higher, so ranks are always unique.
+                </li>
+                <li>
+                  Your own position is always shown in a "Your position" card,
+                  even if you're outside the top 20.
+                </li>
+                <li>
+                  Only active accounts are ranked. The Leaderboards screen
+                  requires sign-in.
+                </li>
+              </ul>
+
+              <div>
+                <h3 class="font-display font-bold text-lg text-ink mb-2">
+                  Top 10 status
+                </h3>
+                <p class="mb-3">
+                  A <strong class="text-orange">Top 10</strong> indicator is a
+                  live status tied to current Rating leaderboard rank, not a
+                  one-time unlock:
+                </p>
+                <ul class="list-disc list-outside pl-5 space-y-2">
+                  <li>
+                    Shown only while the player's
+                    <strong class="text-ink"
+                      >current Rating rank is within the top 10</strong
+                    >
+                    and they have played at least
+                    <strong class="text-ink">10 Ranked matches</strong>.
+                  </li>
+                  <li>
+                    If they drop out of the top 10, the indicator is removed.
+                  </li>
+                  <li>If they re-enter the top 10 later, it's shown again.</li>
+                </ul>
+                <p class="mt-3 text-sm text-ink/60">
+                  Unlike permanent achievements, this reflects standing at the
+                  time it's checked: earned and lost as rank changes, not kept
+                  forever. It appears in the Competitive status card on your
+                  Profile.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 11 ============ -->
+          <section
+            id="sec-11"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 11</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Match History &amp; Match Details
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-4"
+            >
+              <p>
+                <strong class="text-ink">Match History</strong> (account
+                required) lists your past matches, filterable by
+                <strong class="text-ink"
+                  >All / Ranked / Casual / Wins / Losses</strong
+                >, grouped by date ("Today," "Yesterday," then by date), 20 per
+                page with a <strong class="text-ink">Load more</strong> button.
+                Each row shows the outcome (Win, Loss, Forfeit, Draw or
+                Cancelled), your opponents, match type, difficulty, how long
+                ago, rating change and score. Private matches are never saved,
+                so they don't appear.
+              </p>
+              <p>Opening an individual match shows:</p>
+              <ul class="list-disc list-outside pl-5 space-y-2">
+                <li>
+                  The outcome, match type, difficulty, player count, date and
+                  how long the match lasted.
+                </li>
+                <li>
+                  A round-by-round breakdown, including
+                  <strong class="text-ink">every round's secret code</strong>:
+                  codes are only ever revealed once the match is completely
+                  over, never mid-match.
+                </li>
+                <li>
+                  Each participant's rounds won, plus your rating change and
+                  points earned.
+                </li>
+                <li>
+                  Total guesses and match time, calculated specifically for that
+                  match.
+                </li>
+              </ul>
+              <p>
+                Matches cancelled for idleness appear as Cancelled, with the
+                penalty rating change.
+              </p>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 12 ============ -->
+          <section
+            id="sec-12"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 12</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Accounts, Sign-In &amp; Access
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-4"
+            >
+              <ul class="list-disc list-outside pl-5 space-y-3">
+                <li>
+                  <strong class="text-ink">Signing in</strong> is done with
+                  <strong class="text-ink">Google</strong> only. There is no
+                  password. You are required to accept the Terms and Privacy Policy before the
+                  Google button works (guests are exempt).
+                </li>
+                <li>
+                  <strong class="text-ink">Choosing a username:</strong> a
+                  brand-new account picks a username once, before the account is
+                  created. It is mandatory, 3 to 30 characters (lowercase
+                  letters, numbers and underscores), unique ignoring case, and
+                  checked for availability as you type. It can
+                  <strong class="text-ink">never be changed</strong>, and it's
+                  what friends search for. The name "guest" is reserved.
+                </li>
+                <li>
+                  <strong class="text-ink">Call sign:</strong> the bold display
+                  name shown on matches, lobbies and leaderboards. It starts as
+                  your Google name and can be edited (up to 30 characters) from
+                  Edit profile. Your @username sits underneath it. Your email is
+                  shown read-only.
+                </li>
+                <li>
+                  <strong class="text-ink"
+                    >Only one active session per account at a time.</strong
+                  >
+                  Logging in on a new device immediately signs out any other
+                  device that was logged in, with an on-screen message
+                  explaining why. If you had a match in progress on the session
+                  that got signed out, it counts as a forfeit.
+                </li>
+                <li>
+                  <strong class="text-ink">Settings</strong> (opened from the
+                  Profile tab) holds Edit profile, Help and feedback,
+                  Documentation, Terms of service, Privacy policy, Log out and
+                  Delete account. Theme, sound and other preference controls are
+                  not part of v1.
+                </li>
+                <li>
+                  <strong class="text-ink">Deleting your account</strong>
+                  requires typing your email to confirm. It immediately scrubs
+                  your username, email, and display name, and signs you out. The
+                  account can never be signed into again. Because match history
+                  is shared with opponents, the underlying match/round records
+                  are kept (so opponents' history stays intact), just detached
+                  from any identifying information about you. Your own Rating,
+                  Points, and stats disappear.
+                </li>
+                <li>
+                  <strong class="text-ink">Guests</strong> (no account) can
+                  freely use Practice Mode, Help and feedback, and "How to
+                  Play." Multiplayer, Leaderboards, Match History and Private
+                  Rooms appear as locked "Needs an account" tiles, and tapping
+                  one goes straight to sign-in.
+                </li>
+                <li>
+                  <strong class="text-ink">Suspensions and bans:</strong> a
+                  suspended or banned account sees an Account Locked screen,
+                  even mid-match (it takes effect within about 15 seconds). A
+                  suspended player can send one appeal at a time and is emailed
+                  the outcome. A ban is permanent and cannot be appealed.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 13 ============ -->
+          <section
+            id="sec-13"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 13</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Help &amp; Feedback
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-4"
+            >
+              <p>
+                The <strong class="text-ink">Help and feedback</strong> screen
+                is open to everyone, guests included, and is reached from
+                Settings. It has:
+              </p>
+              <ul class="list-disc list-outside pl-5 space-y-2">
+                <li>
+                  <strong class="text-ink">Discord:</strong> chat with players,
+                  ask questions and track development on our
+                  <a
+                    href="https://discord.gg/JwQvJZnJE"
+                    class="text-cyan underline"
+                    target="_blank"
+                    rel="noopener"
+                    >Official Discord</a
+                  >.
+                </li>
+                <li>
+                  <strong class="text-ink">WhatsApp channel:</strong>
+                  announcements and updates about guessIo.
+                </li>
+                <li>
+                  <strong class="text-ink">Share your feedback:</strong> a short
+                  form for feedback, bugs and support requests is periodically
+                  presented to gather data and improve gaming experience for
+                  players
+                </li>
+                <li>
+                  <strong class="text-ink">Email:</strong> write to
+                  <a
+                    href="mailto:elvismbonu100@gmail.com"
+                    class="text-cyan underline"
+                    >the developer</a
+                  >, or use the "Contact me" link on the Help and feedback
+                  screen.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 14 ============ -->
+          <section
+            id="sec-14"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 14</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Visual & Brand Identity
+            </h2>
+            <div
+              class="max-w-3xl font-body text-ink/80 leading-relaxed space-y-5"
+            >
+              <ul class="list-disc list-outside pl-5 space-y-2">
+                <li>
+                  <strong class="text-ink">Name:</strong> guessIo, stylized in
+                  the app's own logo/wordmark as
+                  <span class="wordmark inline-flex"
+                    ><span class="wm-g">g</span><span class="wm-u">u</span
+                    ><span class="wm-e">e</span><span class="wm-s1">s</span
+                    ><span class="wm-s2">s</span
+                    ><span class="wm-io">Io</span></span
+                  >.
+                </li>
+                <li>
+                  <strong class="text-ink">Tagline:</strong> "Analyse → Outsmart
+                  → Crack the Code."
+                </li>
+              </ul>
+
+              <div>
+                <div
+                  class="font-mono text-[11px] uppercase tracking-widest text-gray mb-3"
+                >
+                  Palette
+                </div>
+                <p class="mb-3">
+                  Pure black background;
+                  <strong class="text-green">neon green</strong> as the primary
+                  accent (used for "correct," success, and active states), with
+                  amber for warnings and red for errors and low time. Cyan,
+                  purple and orange appear in the wordmark and as category
+                  accents. A faint green grid-line pattern sits behind every
+                  screen.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                  <div class="flex items-center gap-2 panel notch-sm px-3 py-2">
+                    <span
+                      class="w-4 h-4 rounded-full inline-block"
+                      style="background: #12e060"
+                    ></span
+                    ><span class="font-mono text-xs">#12E060 green</span>
+                  </div>
+                  <div class="flex items-center gap-2 panel notch-sm px-3 py-2">
+                    <span
+                      class="w-4 h-4 rounded-full inline-block"
+                      style="background: #2fd8e8"
+                    ></span
+                    ><span class="font-mono text-xs">#2FD8E8 cyan</span>
+                  </div>
+                  <div class="flex items-center gap-2 panel notch-sm px-3 py-2">
+                    <span
+                      class="w-4 h-4 rounded-full inline-block"
+                      style="background: #a855f7"
+                    ></span
+                    ><span class="font-mono text-xs">#A855F7 purple</span>
+                  </div>
+                  <div class="flex items-center gap-2 panel notch-sm px-3 py-2">
+                    <span
+                      class="w-4 h-4 rounded-full inline-block"
+                      style="background: #ff9a3c"
+                    ></span
+                    ><span class="font-mono text-xs">#FF9A3C orange</span>
+                  </div>
+                  <div class="flex items-center gap-2 panel notch-sm px-3 py-2">
+                    <span
+                      class="w-4 h-4 rounded-full inline-block"
+                      style="background: #ff3d4a"
+                    ></span
+                    ><span class="font-mono text-xs">#FF3D4A red</span>
+                  </div>
+                  <div class="flex items-center gap-2 panel notch-sm px-3 py-2">
+                    <span
+                      class="w-4 h-4 rounded-full inline-block"
+                      style="background: #ffb01f"
+                    ></span
+                    ><span class="font-mono text-xs">#FFB01F amber</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <div
+                  class="font-mono text-[11px] uppercase tracking-widest text-gray mb-3"
+                >
+                  Type
+                </div>
+                <div class="grid sm:grid-cols-3 gap-4">
+                  <div class="panel notch-sm p-4">
+                    <div class="font-display font-bold text-lg mb-1">
+                      Orbitron
+                    </div>
+                    <div class="text-xs text-ink/60">Headlines & titles</div>
+                  </div>
+                  <div class="panel notch-sm p-4">
+                    <div class="font-display font-semibold text-lg mb-1">
+                      Orbitron Bold
+                    </div>
+                    <div class="text-xs text-ink/60">Digits on the tiles</div>
+                  </div>
+                  <div class="panel notch-sm p-4">
+                    <div class="font-body font-semibold text-lg mb-1">
+                      Barlow
+                    </div>
+                    <div class="text-xs text-ink/60">Body text</div>
+                  </div>
+                </div>
+              </div>
+
+              <p>
+                <strong class="text-ink">Overall read:</strong> a dark "hacker
+                terminal" / command-center aesthetic. This pairs with the naming
+                vocabulary to form a consistent "codebreaker" theme worth
+                carrying into any new copy, characters, or promotional material.
+              </p>
+              <p>
+                The guess board's colored-tile presentation makes deduction
+                feedback easy to scan at a glance, even though the content is
+                always digits.
+              </p>
+            </div>
+          </section>
+
+          <!-- ============ SECTION 15 ============ -->
+          <section
+            id="sec-15"
+            class="doc-section mb-20 pt-6 border-t border-line"
+          >
+            <div class="eyebrow mb-3">Section 15</div>
+            <h2 class="font-display font-bold text-2xl md:text-3xl mb-6">
+              Screen Map
+            </h2>
+            <div class="max-w-3xl font-body text-ink/80 leading-relaxed">
+              <p class="mb-5">
+                The signed-in app has a four-tab bottom bar:
+                <strong class="text-ink"
+                  >Home, Leaderboard, Matches, Profile</strong
+                >.
+              </p>
+              <div class="overflow-x-auto">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Screen</th>
+                      <th>Who can reach it</th>
+                      <th>Purpose</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Login</td>
+                      <td>Everyone</td>
+                      <td>
+                        Google sign-in with consent checkbox and "Play as guest"
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Onboarding ("Choose a username")</td>
+                      <td>New Google sign-ins only</td>
+                      <td>Mandatory, permanent username picker</td>
+                    </tr>
+                    <tr>
+                      <td>Account Locked</td>
+                      <td>Suspended or banned accounts</td>
+                      <td>Explains the status; appeal form (suspended only)</td>
+                    </tr>
+                    <tr>
+                      <td>Dashboard</td>
+                      <td>Signed-in users</td>
+                      <td>
+                        Home base: Play button, last game, recent matches,
+                        rating, win rate, matches played, How to Play
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Guest Home</td>
+                      <td>Guests</td>
+                      <td>
+                        Play solo, sign-in pitch, locked "Needs an account"
+                        tiles
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>New match (Play)</td>
+                      <td>Signed-in users</td>
+                      <td>Choose Ranked / Casual / Private, players, rules</td>
+                    </tr>
+                    <tr>
+                      <td>Practice Mode (Play, guest)</td>
+                      <td>Guests</td>
+                      <td>
+                        Choose Vs Computer / Pass &amp; Play, rules, round
+                        length
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Matchmaking</td>
+                      <td>Signed-in users</td>
+                      <td>Seat-by-seat queue screen for Casual &amp; Ranked</td>
+                    </tr>
+                    <tr>
+                      <td>Private Room</td>
+                      <td>Signed-in users</td>
+                      <td>Create/join a room by code, lobby, host controls</td>
+                    </tr>
+                    <tr>
+                      <td>Gameplay / Guest Gameplay</td>
+                      <td>Whoever's in a match</td>
+                      <td>The live guessing screen</td>
+                    </tr>
+                    <tr>
+                      <td>Round Result</td>
+                      <td>Whoever's in a match</td>
+                      <td>
+                        Between-round reveal with round time and fastest guess
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Results / Guest Results</td>
+                      <td>Whoever finished a match</td>
+                      <td>Outcome, rounds won, rating and points earned</td>
+                    </tr>
+                    <tr>
+                      <td>Profile</td>
+                      <td>Signed-in users</td>
+                      <td>
+                        Identity, rating, points, win/draw/loss bar, competitive
+                        status, top achievements
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Achievements</td>
+                      <td>Signed-in users</td>
+                      <td>
+                        Full list of 14 with progress bar, unlocked and locked
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Match History / Match Details</td>
+                      <td>Signed-in users</td>
+                      <td>Past matches list and round-by-round breakdown</td>
+                    </tr>
+                    <tr>
+                      <td>Leaderboards</td>
+                      <td>Signed-in users</td>
+                      <td>Top 20 Rating or Points, plus your own position</td>
+                    </tr>
+                    <tr>
+                      <td>Settings</td>
+                      <td>Signed-in users</td>
+                      <td>
+                        Edit profile, help and legal links, log out, delete
+                        account
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Help and feedback</td>
+                      <td>Everyone</td>
+                      <td>Discord, WhatsApp channel, feedback form, email</td>
+                    </tr>
+                    <tr>
+                      <td>Error screens</td>
+                      <td>Everyone</td>
+                      <td>
+                        No internet, something broke, room not found, page not
+                        found, back soon (maintenance), you were signed out
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>"Could not reconnect" dialog</td>
+                      <td>Signed-in users on live screens</td>
+                      <td>Reconnect or play as guest</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- footer -->
+          <footer
+            class="pt-10 pb-4 border-t border-line font-mono text-[11px] uppercase tracking-widest text-gray flex flex-wrap items-center justify-between gap-3"
+          >
+            <span
+              class="wordmark font-display font-black text-sm lowercase flex"
+              ><span class="wm-g">g</span><span class="wm-u">u</span
+              ><span class="wm-e">e</span><span class="wm-s1">s</span
+              ><span class="wm-s2">s</span><span class="wm-io">Io</span></span
+            >
+            <span>Game Guide · v1.0</span>
+          </footer>
+        </main>
+      </div>
+    </div>
+
+    <script>
+      // populate mobile drawer from desktop toc
+      document.addEventListener("DOMContentLoaded", () => {
+        const toc = document.getElementById("toc");
+        const drawerContainer = document.querySelector(
+          "#toc-drawer .absolute.top-16",
+        );
+        if (drawerContainer && toc) {
+          const clone = toc.cloneNode(true);
+          const label = document.createElement("div");
+          label.className = "eyebrow mb-4";
+          label.textContent = "Contents";
+          drawerContainer.appendChild(label);
+          drawerContainer.appendChild(clone);
+          clone
+            .querySelectorAll("a")
+            .forEach((a) => a.addEventListener("click", closeDrawer));
+        }
+
+        const drawer = document.getElementById("toc-drawer");
+        const toggle = document.getElementById("toc-toggle");
+        const backdrop = document.getElementById("toc-backdrop");
+        function openDrawer() {
+          drawer.classList.remove("hidden");
+        }
+        function closeDrawer() {
+          drawer.classList.add("hidden");
+        }
+        toggle.addEventListener("click", openDrawer);
+        backdrop.addEventListener("click", closeDrawer);
+
+        // scrollspy
+        const sections = document.querySelectorAll(".doc-section");
+        const links = document.querySelectorAll("#toc a");
+        const io = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                links.forEach((l) => l.classList.remove("text-green"));
+                const id = entry.target.id;
+                const active = document.querySelector(
+                  '#toc a[href="#' + id + '"]',
+                );
+                if (active) active.classList.add("text-green");
+              }
+            });
+          },
+          { rootMargin: "-15% 0px -70% 0px" },
+        );
+        sections.forEach((s) => io.observe(s));
+      });
+    </script>
+    <footer class="site-foot">
+      <div class="site-foot-in">
+        <a class="wm" href="https://guessio.online/" aria-label="guessIo home"
+          ><i>g</i><i>u</i><i>e</i><i>s</i><i>s</i><i class="io">Io</i></a
+        >
+        <ul>
+          <li><a href="https://guessio.online/">Home</a></li>
+          <li><a href="https://guessio.online/changelog.html">Changelog</a></li>
+          <li><a href="/privacy-policy.html">Privacy policy</a></li>
+          <li><a href="/terms-of-service.html">Terms of service</a></li>
+          <li>
+            <a
+              href="https://discord.gg/JwQvJZnJE"
+              target="_blank"
+              rel="noopener"
+              >Discord</a
+            >
+          </li>
+        </ul>
+        <small>&copy; 2026 guessIo. All rights reserved.</small>
+      </div>
+    </footer>
+  </body>
+</html>

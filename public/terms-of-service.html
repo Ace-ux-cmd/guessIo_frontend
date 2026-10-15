@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050807" />
+    <title>guessIo - Terms of Service</title>
+    <meta name="description" content="Terms of Service for guessIo." />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="guessIo" />
+    <meta property="og:title" content="guessIo - Terms of Service" />
+    <meta property="og:description" content="Terms of Service for guessIo." />
+    <meta
+      property="og:url"
+      content="https://guessio.online/terms-of-service.html"
+    />
+    <meta
+      property="og:image"
+      content="https://guessio.online/assets/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="guessIo - Terms of Service" />
+    <meta name="twitter:description" content="Terms of Service for guessIo." />
+    <meta
+      name="twitter:image"
+      content="https://guessio.online/assets/og-image.png"
+    />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Orbitron:wght@500;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --black: #000000;
+        --panel: #0a0f0d;
+        --panel-2: #0d1512;
+        --line: #1e2a26;
+        --green: #12e060;
+        --green-dim: #0b9c45;
+        --cyan: #2fd8e8;
+        --purple: #a855f7;
+        --orange: #ff9a3c;
+        --red: #e8434f;
+        --yellow: #ffb01f;
+        --white: #f2f5f4;
+        --gray: #596969;
+        --dark-2: #2a3a34;
+        --dark-3: #3d4b46;
+
+        --font-display: "Orbitron", sans-serif;
+        --font-mono: "JetBrains Mono", monospace;
+        --font-body: "Barlow", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        min-height: 100%;
+      }
+
+      body {
+        background: var(--black);
+        color: var(--white);
+        font-family: var(--font-body);
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(18, 224, 96, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(18, 224, 96, 0.03) 1px, transparent 1px);
+        background-size: 38px 38px;
+        mask-image: radial-gradient(
+          ellipse 80% 50% at 50% 0%,
+          black 10%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .corner {
+        position: fixed;
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--green-dim);
+        opacity: 0.6;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .corner.tl {
+        top: 18px;
+        left: 18px;
+        border-right: none;
+        border-bottom: none;
+      }
+      .corner.tr {
+        top: 18px;
+        right: 18px;
+        border-left: none;
+        border-bottom: none;
+      }
+      .corner.bl {
+        bottom: 18px;
+        left: 18px;
+        border-right: none;
+        border-top: none;
+      }
+      .corner.br {
+        bottom: 18px;
+        right: 18px;
+        border-left: none;
+        border-top: none;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+        max-width: 780px;
+        margin: 0 auto;
+        padding: 56px 24px 80px;
+      }
+
+      header.doc-header {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 36px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .wordmark {
+        font-family: var(--font-display);
+        font-weight: 900;
+        text-transform: lowercase;
+        display: inline-flex;
+        font-size: 28px;
+      }
+      .wordmark span {
+        text-shadow: 0 0 14px currentColor;
+      }
+      .wm-g {
+        color: var(--green);
+      }
+      .wm-u {
+        color: var(--cyan);
+      }
+      .wm-e {
+        color: var(--purple);
+      }
+      .wm-s1 {
+        color: var(--orange);
+      }
+      .wm-s2 {
+        color: var(--red);
+      }
+      .wm-io {
+        color: var(--white);
+        font-style: italic;
+        margin-left: 2px;
+      }
+
+      .doc-tag {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2px;
+        color: var(--gray);
+        text-transform: uppercase;
+      }
+
+      h1.doc-title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 26px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--white);
+        margin-top: 6px;
+      }
+
+      .doc-updated {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--green);
+        text-transform: uppercase;
+      }
+
+      .intro-card {
+        background: linear-gradient(180deg, var(--panel), var(--panel-2));
+        border: 1px solid var(--line);
+        padding: 20px 22px;
+        clip-path: polygon(
+          0 14px,
+          14px 0,
+          calc(100% - 14px) 0,
+          100% 14px,
+          100% calc(100% - 14px),
+          calc(100% - 14px) 100%,
+          14px 100%,
+          0 calc(100% - 14px)
+        );
+        font-size: 16px;
+        line-height: 1.6;
+        color: var(--white);
+        margin-bottom: 36px;
+        position: relative;
+      }
+      .intro-card::before {
+        content: "";
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        top: 0;
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--green),
+          transparent
+        );
+        opacity: 0.8;
+      }
+      .intro-card strong {
+        color: var(--green);
+        font-weight: 600;
+      }
+      .intro-card a {
+        color: var(--cyan);
+      }
+
+      .toc {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        padding: 18px 20px;
+        clip-path: polygon(
+          0 0,
+          calc(100% - 10px) 0,
+          100% 10px,
+          100% 100%,
+          10px 100%,
+          0 calc(100% - 10px)
+        );
+        margin-bottom: 40px;
+      }
+      .toc-title {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .toc-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .toc ol {
+        list-style: none;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 20px;
+      }
+      .toc li a {
+        font-family: var(--font-mono);
+        font-size: 12.5px;
+        color: var(--white);
+        text-decoration: none;
+        display: flex;
+        gap: 8px;
+      }
+      .toc li a:hover {
+        color: var(--cyan);
+      }
+      .toc li a .num {
+        color: var(--green);
+        flex-shrink: 0;
+      }
+
+      section.doc-section {
+        margin-bottom: 34px;
+        scroll-margin-top: 24px;
+      }
+
+      .section-title {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--gray);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .section-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: var(--line);
+      }
+      .section-title .idx {
+        color: var(--green);
+      }
+
+      h2.section-heading {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 17px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--white);
+        margin-bottom: 12px;
+      }
+
+      .doc-section p {
+        font-size: 15.5px;
+        line-height: 1.7;
+        color: var(--white);
+        margin-bottom: 12px;
+      }
+
+      .doc-section ul {
+        margin: 8px 0 12px 0;
+        padding-left: 0;
+        list-style: none;
+      }
+      .doc-section li {
+        position: relative;
+        padding-left: 20px;
+        font-size: 15.5px;
+        line-height: 1.65;
+        color: var(--white);
+        margin-bottom: 8px;
+      }
+      .doc-section li::before {
+        content: "▸";
+        position: absolute;
+        left: 0;
+        color: var(--green);
+      }
+      .doc-section li strong {
+        color: var(--cyan);
+        font-weight: 600;
+      }
+
+      .email-tag {
+        display: inline-block;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: var(--green);
+        background: var(--panel);
+        border: 1px solid var(--green-dim);
+        padding: 3px 10px;
+        letter-spacing: 0.5px;
+      }
+
+      a {
+        color: var(--cyan);
+      }
+
+      footer.doc-footer {
+        margin-top: 50px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      footer.doc-footer .foot-left {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--gray);
+        text-transform: uppercase;
+      }
+      footer.doc-footer .foot-right a {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--gray);
+        text-transform: uppercase;
+      }
+      footer.doc-footer .foot-right a:hover {
+        color: var(--cyan);
+      }
+
+      @media (max-width: 560px) {
+        .page {
+          padding: 40px 18px 60px;
+        }
+        .toc ol {
+          grid-template-columns: 1fr;
+        }
+        h1.doc-title {
+          font-size: 21px;
+        }
+      }
+    </style>
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="stylesheet" href="/page.css" />
+    <link rel="canonical" href="https://guessio.online/terms-of-service.html" />
+  </head>
+  <body>
+    <div class="site-bar">
+      <div class="site-bar-in">
+        <a class="wm" href="https://guessio.online/" aria-label="guessIo home"
+          ><i>g</i><i>u</i><i>e</i><i>s</i><i>s</i><i class="io">Io</i></a
+        >
+        <nav aria-label="Site">
+          <a class="home-link" href="https://guessio.online/">Home</a
+          ><a href="/doc.html">Game guide</a
+          ><a href="https://guessio.online/changelog.html">Changelog</a
+          ><a href="/privacy-policy.html">Privacy</a
+          ><a href="/terms-of-service.html" aria-current="page">Terms</a>
+          <a class="go" href="https://play.guessio.online">Play now</a>
+        </nav>
+      </div>
+    </div>
+    <div class="corner tl"></div>
+    <div class="corner tr"></div>
+    <div class="corner bl"></div>
+    <div class="corner br"></div>
+
+    <div class="page">
+      <header class="doc-header">
+        <div class="wordmark">
+          <span class="wm-g">g</span><span class="wm-u">u</span
+          ><span class="wm-e">e</span><span class="wm-s1">s</span
+          ><span class="wm-s2">s</span><span class="wm-io">Io</span>
+        </div>
+        <div class="doc-tag">Elvis // Legal</div>
+        <h1 class="doc-title">Terms of Service</h1>
+        <div class="doc-updated">Last updated: November 17, 2026</div>
+      </header>
+
+      <div class="intro-card">
+        These Terms of Service ("Terms") govern your access to and use of
+        guessIo (the "Game"), operated by <strong>Elvis</strong> ("I," "me," or
+        "my"). By creating an account, playing as a guest, or otherwise using
+        the Game, you agree to these Terms. If you do not agree, please do not
+        use guessIo.
+      </div>
+
+      <nav class="toc">
+        <div class="toc-title">Contents</div>
+        <ol>
+          <li>
+            <a href="#s1"><span class="num">01</span>Eligibility</a>
+          </li>
+          <li>
+            <a href="#s2"><span class="num">02</span>Accounts</a>
+          </li>
+          <li>
+            <a href="#s3"><span class="num">03</span>Guest Play</a>
+          </li>
+          <li>
+            <a href="#s4"><span class="num">04</span>Gameplay Rules</a>
+          </li>
+          <li>
+            <a href="#s5"><span class="num">05</span>Acceptable Use</a>
+          </li>
+          <li>
+            <a href="#s6"
+              ><span class="num">06</span>Support and Contributions</a
+            >
+          </li>
+          <li>
+            <a href="#s7"><span class="num">07</span>Community</a>
+          </li>
+          <li>
+            <a href="#s8"><span class="num">08</span>Sessions and Sign-In</a>
+          </li>
+          <li>
+            <a href="#s9"><span class="num">09</span>Intellectual Property</a>
+          </li>
+          <li>
+            <a href="#s10"><span class="num">10</span>Termination</a>
+          </li>
+          <li>
+            <a href="#s11"><span class="num">11</span>Disclaimers</a>
+          </li>
+          <li>
+            <a href="#s12"
+              ><span class="num">12</span>Limitation of Liability</a
+            >
+          </li>
+          <li>
+            <a href="#s13"
+              ><span class="num">13</span>Changes to the Game and These Terms</a
+            >
+          </li>
+          <li>
+            <a href="#s14"><span class="num">14</span>Governing Law</a>
+          </li>
+          <li>
+            <a href="#s15"><span class="num">15</span>Contact Us</a>
+          </li>
+        </ol>
+      </nav>
+
+      <section class="doc-section" id="s1">
+        <div class="section-title"><span class="idx">01</span>Eligibility</div>
+        <p>
+          You must be at least 13 years old (or the minimum age of digital
+          consent in your country) to create an account or use guessIo. If you
+          are under the age of majority in your jurisdiction, you confirm that a
+          parent or legal guardian has reviewed and agreed to these Terms on
+          your behalf.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s2">
+        <div class="section-title"><span class="idx">02</span>Accounts</div>
+        <ul>
+          <li>
+            To access most features (Multiplayer, Leaderboards, Match History,
+            Private Rooms, and Profile), you must sign in with Google.
+          </li>
+          <li>
+            Usernames must be 3-30 characters and may contain letters, numbers,
+            and underscores only.
+          </li>
+          <li>
+            You are responsible for maintaining the confidentiality of your
+            login credentials and for all activity under your account.
+          </li>
+          <li>
+            Only one active session per account is permitted at a time. Logging
+            in on a new device will automatically sign you out of any other
+            active session. If a match is in progress on the session that gets
+            signed out, it will be recorded as a forfeit.
+          </li>
+          <li>
+            You may delete your account at any time. This will remove or
+            anonymize your username, email, and display name, clear the Google
+            account link, and sign you out everywhere. Match and round records
+            involving other players will be retained in de-identified form so
+            their history remains accurate, as described in my Privacy Policy.
+          </li>
+        </ul>
+      </section>
+
+      <section class="doc-section" id="s3">
+        <div class="section-title"><span class="idx">03</span>Guest Play</div>
+        <p>
+          You may play certain modes, including Practice Mode, without creating
+          an account. Guest progress is stored locally on your device only, is
+          not saved to my servers, and will be lost if you clear your browser
+          data, switch devices, or uninstall the app. Guest play does not earn
+          rating, points, achievements, or a place on any leaderboard.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s4">
+        <div class="section-title">
+          <span class="idx">04</span>Gameplay Rules
+        </div>
+        <p>
+          By playing guessIo, you agree to follow the Game's rules and
+          mechanics, including but not limited to:
+        </p>
+        <ul>
+          <li>
+            <strong>Match types:</strong> Casual, Ranked, and Private Room
+            matches, each with different effects on rating, points, and match
+            history, as described in-app.
+          </li>
+          <li>
+            <strong>Fair play and idle penalties:</strong> if a full rotation
+            passes without a valid guess, a warning is issued; a second
+            consecutive occurrence cancels the match. In Casual and Ranked
+            matches, inactivity penalties may apply as described in-app.
+          </li>
+          <li>
+            <strong>Forfeiture:</strong> leaving a match, disconnecting beyond
+            the reconnection grace period, or logging out during a match may be
+            recorded as a forfeit and may affect your rating.
+          </li>
+          <li>
+            <strong>Simulated players (bots):</strong> matchmaking may fill
+            empty seats with simulated players to keep matches starting
+            promptly. This applies to Casual and Ranked matches alike.
+          </li>
+          <li>
+            <strong>Rating, points, and achievements:</strong> these are
+            calculated according to the Game's internal rules, which may be
+            adjusted, rebalanced, or expanded over time as the Game is updated.
+          </li>
+        </ul>
+        <p>
+          I reserve the right to modify gameplay mechanics, matchmaking
+          behavior, rating calculations, achievements, and related systems at
+          any time to improve the Game.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s5">
+        <div class="section-title">
+          <span class="idx">05</span>Acceptable Use
+        </div>
+        <p>You agree not to:</p>
+        <ul>
+          <li>
+            Use bots, scripts, automation tools, or any third-party software to
+            gain an unfair advantage
+          </li>
+          <li>
+            Exploit bugs or unintended behavior instead of reporting them to me
+          </li>
+          <li>Harass, threaten, or abuse other players</li>
+          <li>
+            Attempt to gain unauthorized access to another player's account
+          </li>
+          <li>
+            Interfere with or disrupt the Game's servers, matchmaking, or
+            infrastructure
+          </li>
+          <li>Use the Game for any unlawful purpose</li>
+        </ul>
+        <p>
+          I reserve the right to suspend or terminate accounts that violate
+          these Terms, at my discretion.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s6">
+        <div class="section-title">
+          <span class="idx">06</span>Support and Contributions
+        </div>
+        <p>
+          guessIo offers a Support feature that allows players to voluntarily
+          contribute funds to help support server costs, ongoing development,
+          and new content. Contributions are voluntary and do not unlock
+          competitive advantages in gameplay. Contributions are processed
+          through a third-party payment provider, and applicable transaction
+          terms (such as refund eligibility) will be presented at the time of
+          payment. Contribution tiers or recognitions (such as a Supporter,
+          Backer, or Champion status) may be introduced or changed at my
+          discretion.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s7">
+        <div class="section-title"><span class="idx">07</span>Community</div>
+        <p>
+          I maintain a Discord community linked from within the Game.
+          Participation in Discord is optional and governed separately by
+          Discord's own Terms of Service and Community Guidelines, as well as
+          any rules posted within my Discord server. I am not responsible for
+          content posted by other users in that community.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s8">
+        <div class="section-title">
+          <span class="idx">08</span>Sessions and Sign-In
+        </div>
+        <p>
+          <strong>Web sessions are tied to your browser tab.</strong> To keep
+          your account safe and protect your progress, web sessions are designed
+          to end automatically whenever you close your browser tab. Refreshing
+          the page keeps you signed in so you can keep playing without
+          interruption, but closing the tab ensures no one else can access your
+          account on that device after you leave.
+        </p>
+        <p>
+          <strong>One session per account.</strong> Your account can be signed
+          in on one device at a time. Signing in elsewhere ends your previous
+          session.
+        </p>
+        <p>
+          <strong>Leaving a match.</strong> Closing the tab or losing your
+          connection during a match does not pause it. If you do not return
+          within a short period, the match is recorded as a forfeit, which may
+          affect your rating and the results of other players. If you sign in
+          again while the match is still running, you may rejoin it or abandon
+          it. Abandoning counts as a forfeit.
+        </p>
+        <p>
+          <strong>Logging out on shared devices.</strong> Closing a tab does not
+          end your session on our servers. On a shared or public device, use Log
+          out before you leave.
+        </p>
+        <p>
+          <strong>Your responsibility.</strong> You are responsible for keeping
+          your Google account secure and for activity under your session on
+          devices you control. Do not leave a signed-in tab open on a device you
+          do not control.
+        </p>
+        <p>
+          <strong>Mobile apps.</strong> Our mobile apps may keep you signed in
+          between launches. Session length in the apps may differ from the web.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s9">
+        <div class="section-title">
+          <span class="idx">09</span>Intellectual Property
+        </div>
+        <p>
+          guessIo, including its name, logo, branding, game design, code, and
+          content, is owned by Elvis or my licensors and is protected by
+          applicable intellectual property laws. These Terms do not grant you
+          any ownership rights in the Game. You may not copy, modify,
+          distribute, reverse-engineer, or create derivative works from the Game
+          except as permitted by law or with my prior written consent.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s10">
+        <div class="section-title"><span class="idx">10</span>Termination</div>
+        <p>
+          I may suspend or terminate your access to guessIo at any time, with or
+          without notice, for conduct that I believe violates these Terms, harms
+          other players, or harms the Game or me. You may stop using the Game
+          and delete your account at any time.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s11">
+        <div class="section-title"><span class="idx">11</span>Disclaimers</div>
+        <p>
+          guessIo is provided "as is" and "as available," without warranties of
+          any kind, whether express or implied, including but not limited to
+          warranties of merchantability, fitness for a particular purpose, or
+          non-infringement. I do not guarantee that the Game will be
+          uninterrupted, error-free, or secure at all times.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s12">
+        <div class="section-title">
+          <span class="idx">12</span>Limitation of Liability
+        </div>
+        <p>
+          To the fullest extent permitted by law, Elvis shall not be liable for
+          any indirect, incidental, special, consequential, or punitive damages,
+          or any loss of data, revenue, or goodwill, arising from your use of or
+          inability to use guessIo, even if I have been advised of the
+          possibility of such damages.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s13">
+        <div class="section-title">
+          <span class="idx">13</span>Changes to the Game and These Terms
+        </div>
+        <p>
+          I may update, modify, or discontinue features of guessIo at any time.
+          I may also revise these Terms from time to time. If I make material
+          changes, I will notify you through the app or by other reasonable
+          means. Continued use of the Game after changes take effect constitutes
+          acceptance of the revised Terms.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s14">
+        <div class="section-title">
+          <span class="idx">14</span>Governing Law
+        </div>
+        <p>
+          These Terms shall be governed by and construed in accordance with
+          applicable law, without regard to conflict-of-law principles, except
+          where local consumer protection law requires otherwise.
+        </p>
+      </section>
+
+      <section class="doc-section" id="s15">
+        <div class="section-title"><span class="idx">15</span>Contact Us</div>
+        <p>If you have questions about these Terms, please contact me at:</p>
+        <a href="mailto:elvismbonu100@gmail.com">
+          <p><span class="email-tag">elvismbonu100@gmail.com</span></p>
+        </a>
+      </section>
+
+      <footer class="doc-footer">
+        <div class="foot-left">Elvis // guessIo</div>
+        <div class="foot-right">
+          <a href="/privacy-policy.html">← Privacy Policy</a>
+        </div>
+      </footer>
+    </div>
+    <footer class="site-foot">
+      <div class="site-foot-in">
+        <a class="wm" href="https://guessio.online/" aria-label="guessIo home"
+          ><i>g</i><i>u</i><i>e</i><i>s</i><i>s</i><i class="io">Io</i></a
+        >
+        <ul>
+          <li><a href="https://guessio.online/">Home</a></li>
+          <li><a href="/doc.html">Game guide</a></li>
+          <li><a href="https://guessio.online/changelog.html">Changelog</a></li>
+          <li><a href="/privacy-policy.html">Privacy policy</a></li>
+          <li>
+            <a
+              href="https://discord.gg/JwQvJZnJE"
+              target="_blank"
+              rel="noopener"
+              >Discord</a
+            >
+          </li>
+        </ul>
+        <small>&copy; 2026 guessIo. All rights reserved.</small>
+      </div>
+    </footer>
+  </body>
+</html>

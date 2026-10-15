@@ -1,0 +1,126 @@
+.site-bar {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: rgba(5, 8, 7, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid #1e2b25;
+  font-family: "Barlow", system-ui, sans-serif;
+}
+.site-bar-in {
+  max-width: 1180px;
+  margin: 0 auto;
+  height: 60px;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.site-bar .wm,
+.site-foot .wm {
+  font-family: "Orbitron", "Barlow", sans-serif;
+  font-weight: 900;
+  font-size: 22px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: baseline;
+}
+.site-bar .wm i,
+.site-foot .wm i {
+  font-style: normal;
+}
+.wm i:nth-child(1) {
+  color: #12e060;
+}
+.wm i:nth-child(2) {
+  color: #2fd8e8;
+}
+.wm i:nth-child(3) {
+  color: #a855f7;
+}
+.wm i:nth-child(4) {
+  color: #ff9a3c;
+}
+.wm i:nth-child(5) {
+  color: #e8434f;
+}
+.wm i.io {
+  font-style: italic;
+  color: #eef3f0;
+}
+.site-bar nav {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  font-weight: 600;
+  font-size: 15px;
+}
+.site-bar nav a {
+  color: #8c9c95;
+  text-decoration: none;
+}
+.site-bar nav a:hover,
+.site-bar nav a[aria-current="page"] {
+  color: #eef3f0;
+}
+.site-bar .go {
+  background: #12e060;
+  color: #03140a !important;
+  font-family: "Orbitron", "Barlow", sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 11px 18px;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+}
+.site-foot {
+  position: relative;
+  z-index: 2;
+  margin-top: 64px;
+  border-top: 1px solid #1e2b25;
+  background: #0c1210;
+  font-family: "Barlow", system-ui, sans-serif;
+  padding: 36px 20px;
+}
+.site-foot-in {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px 32px;
+}
+.site-foot ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.site-foot a {
+  color: #8c9c95;
+  text-decoration: none;
+}
+.site-foot a:hover {
+  color: #12e060;
+}
+.site-foot small {
+  flex-basis: 100%;
+  color: #8c9c95;
+  font-size: 13.5px;
+}
+@media (max-width: 640px) {
+  .site-bar nav a:not(.go) {
+    display: none;
+  }
+  .site-bar nav a.home-link {
+    display: inline;
+  }
+}
