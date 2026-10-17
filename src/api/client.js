@@ -7,7 +7,8 @@ export const apiClient = axios.create({ baseURL });
 
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
-  if (accessToken) {
+  // A caller that sets its own Authorization header (the appeal token) keeps it.
+  if (accessToken && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
   return config;
