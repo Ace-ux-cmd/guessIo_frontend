@@ -4,7 +4,7 @@ import BottomNav from '../../components/ui/BottomNav';
 import Icon from '../../components/ui/Icon';
 import { useCurrentUser } from '../../hooks/useAuth';
 import { EditProfileSheet, LogoutDialog, DeleteAccountSheet } from '../../components/profile/AccountSheets';
-import { DOCS_URL, TERMS_URL, PRIVACY_URL } from '../../constants/legalLinks';
+import { DOCS_URL, TERMS_URL, PRIVACY_URL, DOWNLOAD_URL } from '../../constants/legalLinks';
 
 const ROW = 'flex items-center justify-between py-3.5';
 
@@ -50,6 +50,13 @@ export default function Settings() {
             <RowText title="Edit profile" sub="Username and email" />
             <Icon name="chev" className="w-4 h-4 text-mute" />
           </button>
+        </Group>
+
+        <Group title="Mobile app">
+          <a href={DOWNLOAD_URL} target="_blank" rel="noopener noreferrer" className={ROW}>
+            <RowText title="Download the mobile app" sub="Play guessIo on your phone" />
+            <Icon name="chev" className="w-4 h-4 text-mute" />
+          </a>
         </Group>
 
         <Group title="Support">

@@ -1,20 +1,14 @@
 /**
- * External links used across the app (legal pages, docs).
- *
- * Terms/Privacy are static HTML files served from this app's own
- * /public folder (public/terms-of-service.html, public/privacy-policy.html)
- * - Vite copies /public as-is into the build output, so these resolve at
- * the app's own root in every environment with no separate hosting step.
- * Every call site already opens these with target="_blank", so they open
- * in a new tab.
- *
- * === EDIT DOCS_URL TO YOUR REAL URL ===
- * Docs still isn't hosted anywhere yet - replace this placeholder once
- * it is.
+ * External links used across the app. The static pages (Terms, Privacy,
+ * game guide, mobile download) are hosted on the main site, not in this
+ * app's /public folder. Every call site opens them with target="_blank".
  */
-export const TERMS_URL = '/terms-of-service.html';
-export const PRIVACY_URL = '/privacy-policy.html';
-export const DOCS_URL = '/doc.html';
+const SITE_URL = 'https://guessio.online';
+
+export const TERMS_URL = `${SITE_URL}/terms-of-service.html`;
+export const PRIVACY_URL = `${SITE_URL}/privacy-policy.html`;
+export const DOCS_URL = `${SITE_URL}/doc.html`;
+export const DOWNLOAD_URL = `${SITE_URL}/download.html`;
 
 /**
  * Appeals fallback contact for a suspended/banned account reached via the

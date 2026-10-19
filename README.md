@@ -88,7 +88,7 @@ src/
   sockets/      Socket.IO client
   stores/       zustand stores (auth, match, achievement notifications)
   styles/       app.css (hand-written) and ui.css (generated)
-public/         Icons, manifest, bot avatars, Terms, Privacy Policy, game guide
+public/         Icons, manifest, bot avatars
 tools/          CSS generation setup
 ```
 
@@ -100,13 +100,13 @@ tools/          CSS generation setup
 bash tools/build-css.sh
 ```
 
-This also regenerates `public/doc.css` for the game guide page. Class names must appear as complete literal strings in JSX (no `"w-" + n`), or the generator cannot see them. Hand-written styles live in `src/styles/app.css`. See `tools/README.md` for details.
+Class names must appear as complete literal strings in JSX (no `"w-" + n`), or the generator cannot see them. Hand-written styles live in `src/styles/app.css`. See `tools/README.md` for details.
 
 ## Notes
 
 - Fonts: Orbitron (display) and Barlow (body)
 - Support email and external links are set in `src/constants/legalLinks.js`
-- The game guide at `public/doc.html` is the in-app Documentation page
+- Terms, Privacy Policy, the game guide and the mobile download page are hosted on `https://guessio.online` and linked from `src/constants/legalLinks.js`
 - There is no frontend test suite yet
 
 ## License

@@ -6,7 +6,7 @@ import LoginDemoBoard from '../../components/ui/LoginDemoBoard';
 import { Banner } from '../../components/ui/Feedback';
 import { useAuthStore } from '../../stores/authStore';
 import { getGoogleLoginUrl } from '../../api/auth.api';
-import { TERMS_URL, PRIVACY_URL } from '../../constants/legalLinks';
+import { TERMS_URL, PRIVACY_URL, DOWNLOAD_URL } from '../../constants/legalLinks';
 
 /**
  * The single unified authentication screen. Google OAuth is the only
@@ -94,6 +94,10 @@ export default function Login() {
       </Button>
 
       <p className="text-xs text-mute text-center pt-1">New or returning, one tap. No password to remember.</p>
+      <p className="text-xs text-mute text-center">
+        Prefer your phone?{' '}
+        <a className="underline" href={DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">Download the mobile app</a>
+      </p>
     </AuthShell>
   );
 }

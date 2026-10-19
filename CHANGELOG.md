@@ -69,7 +69,7 @@ All notable changes to the guessIo frontend (web app) are documented in this fil
 
 ### Design and static pages
 - Dark "hacker terminal" look, neon green accent, Orbitron and Barlow fonts, bot avatars
-- Game guide (`doc.html`), Privacy Policy and Terms of Service pages
+- Terms, Privacy Policy and game guide links (hosted on guessio.online)
 - PWA manifest (name, icons, black theme)
 
 ### Tech
