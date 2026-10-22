@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
 import Tile from '../../components/ui/Tile';
@@ -28,25 +28,79 @@ export default function PrivateRoom() {
   useMatchSocket();
   const reconnectGate = useReconnectGate();
 
+  // The latest room, readable from socket callbacks and the unmount cleanup
+  // without re-subscribing. Kept in step with `room` by adoptRoom().
+  const roomRef = useRef(null);
+  // Set once the server has launched the match; the room is gone by then, so
+  // there is nothing to leave.
+  const launchedRef = useRef(false);
+  // True while a room.join sent after a reconnect is awaiting its answer.
+  const resumingRef = useRef(false);
+
+  function adoptRoom(next) {
+    roomRef.current = next;
+    setRoom(next);
+  }
+
   useEffect(() => {
     connectSocket();
     const socket = getSocket();
+    let hasConnectedBefore = socket.connected;
 
-    const onPlayerJoined = (env) => setRoom(env.payload.room);
+    const onPlayerJoined = (env) => {
+      resumingRef.current = false;
+      adoptRoom(env.payload.room);
+    };
     // Server sends the full post-departure room (including any host
     // migration) on both an explicit room.leave and a disconnect-triggered
     // removal, so the client just adopts it.
-    const onPlayerLeft = (env) => setRoom(env.payload.room);
-    const onRejected = (env) => setError(env.payload.message);
+    const onPlayerLeft = (env) => adoptRoom(env.payload.room);
+    const onMatchFound = () => { launchedRef.current = true; };
+    const onRejected = (env) => {
+      const { code, message } = env.payload;
+      // The reconnect resume below was refused: the 10 second seat hold ran
+      // out (or the room is gone), so drop the stale room instead of showing
+      // a lobby this player no longer belongs to.
+      if (resumingRef.current && ['ROOM_NOT_FOUND', 'ROOM_FULL', 'ROOM_NOT_JOINABLE'].includes(code)) {
+        resumingRef.current = false;
+        adoptRoom(null);
+        setError('You were disconnected for too long and were removed from the room.');
+        return;
+      }
+      setError(message);
+    };
+    // After an automatic reconnect the server normally hands the seat straight
+    // back (room.playerJoined). Re-sending room.join covers the case where it
+    // could not, and is a harmless resume when it did.
+    const onConnect = () => {
+      if (hasConnectedBefore && roomRef.current && !launchedRef.current) {
+        resumingRef.current = true;
+        emit('room.join', { roomCode: roomRef.current.roomCode });
+      }
+      hasConnectedBefore = true;
+    };
 
     socket.on('room.playerJoined', onPlayerJoined);
     socket.on('room.playerLeft', onPlayerLeft);
+    socket.on('match.found', onMatchFound);
     socket.on('guess.rejected', onRejected);
+    socket.on('connect', onConnect);
     return () => {
       socket.off('room.playerJoined', onPlayerJoined);
       socket.off('room.playerLeft', onPlayerLeft);
+      socket.off('match.found', onMatchFound);
       socket.off('guess.rejected', onRejected);
+      socket.off('connect', onConnect);
+      // Leaving this screen by any route (back, dashboard, a link) must free
+      // the seat. Otherwise the server keeps it and the player is later told
+      // they are "already in a room". Backgrounding the app does not unmount
+      // this screen, so a short switch to WhatsApp keeps the seat.
+      if (roomRef.current && !launchedRef.current) {
+        emit('room.leave', { roomId: roomRef.current.roomId });
+        roomRef.current = null;
+      }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function createRoom() {
@@ -61,7 +115,7 @@ export default function PrivateRoom() {
 
   function leaveRoom() {
     if (room) emit('room.leave', { roomId: room.roomId });
-    setRoom(null);
+    adoptRoom(null);
   }
 
   function back() {
