@@ -104,7 +104,7 @@ export default function Onboarding() {
 
       <form onSubmit={submit} className="space-y-3">
         <div>
-          <label htmlFor="username" className="block text-sm font-semibold mb-1.5">Username</label>
+          <label htmlFor="username" className="mb-1.5 block text-sm font-bold">Username</label>
           <input
             id="username"
             value={username}
@@ -118,7 +118,7 @@ export default function Onboarding() {
             maxLength={30}
             aria-invalid={availability.status === 'taken'}
             aria-describedby="username-status"
-            className={`w-full h-12 px-4 rounded-md bg-s1 border ${FIELD_BORDER[availability.status] || 'border-line'} text-ink placeholder:text-mute focus:border-g outline-none`}
+            className={`w-full min-h-[48px] rounded-lg border bg-s2 px-3 text-white placeholder:text-mute ${FIELD_BORDER[availability.status] || 'border-edge'}`}
           />
         </div>
         <UsernameStatus status={availability.status} />

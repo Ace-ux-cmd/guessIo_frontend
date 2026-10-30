@@ -3,7 +3,7 @@
  * so guest matches validate guesses identically to real matches.
  */
 
-export const REJECTION_CODES = {
+const REJECTION_CODES = {
   INVALID_LENGTH: 'INVALID_LENGTH',
   NON_NUMERIC: 'NON_NUMERIC',
   DUPLICATE_DIGITS: 'DUPLICATE_DIGITS',

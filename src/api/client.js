@@ -1,11 +1,14 @@
 import axios from 'axios';
 import { useAuthStore } from '../stores/authStore';
+import { APP_VERSION } from '../lib/version';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 
 export const apiClient = axios.create({ baseURL });
 
 apiClient.interceptors.request.use((config) => {
+  // The bundle version rides on requests the app already makes.
+  config.headers['X-Client-Version'] = APP_VERSION;
   const { accessToken } = useAuthStore.getState();
   // A caller that sets its own Authorization header (the appeal token) keeps it.
   if (accessToken && !config.headers.Authorization) {

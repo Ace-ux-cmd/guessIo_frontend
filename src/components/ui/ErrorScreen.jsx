@@ -1,29 +1,36 @@
 import Icon from './Icon';
 
-const TONE = {
-  warn: 'bg-warn/25 text-warn',
-  bad: 'bg-bad/25 text-bad',
-  info: 'bg-info/25 text-info',
-  mute: 'bg-s2 text-mute',
-  danger: 'bg-s2 text-bad',
-};
+// Template status classes (error-pages.html): info = 404, bad = 500, warn = offline, vio = maintenance.
+const STATUS = { info: 'status-404', bad: 'status-500', danger: 'status-500', warn: 'status-offline', mute: 'status-offline', vio: 'status-maintenance' };
 
-/** Shared full-screen state (15.x): icon, headline, line of copy, optional note, actions. */
-export default function ErrorScreen({ tone = 'warn', icon, title, body, note, detail, extra, actions }) {
+/** A button in the template's error-card action row. `kind` is primary, secondary or solo. */
+export function ErrorAction({ kind = 'primary', ...props }) {
+  return <button type="button" className={`action error-pages-variant ${kind}`} {...props} />;
+}
+
+/**
+ * Full-screen state from error-pages.html: a coloured code (`glyph`), headline,
+ * a line of copy, optional note and an action row. `icon` is still accepted for
+ * callers that have no glyph.
+ */
+export default function ErrorScreen({ tone = 'info', glyph, icon, title, body, note, detail, extra, actions }) {
   return (
-    <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-6">
-      <section className="flex-1 flex flex-col px-6 pt-24 text-center items-center">
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${TONE[tone]}`}>
-          <Icon name={icon} className="w-8 h-8" />
-        </div>
-        <h1 className="mt-6 text-3xl font-bold">{title}</h1>
-        <p className="mt-2 text-mute max-w-[30ch]">{body}</p>
-        {detail && <p className="mt-5 text-sm text-mute max-w-[32ch]" role="status">{detail}</p>}
-        {extra}
-        {note && <p className="mt-4 text-xs text-mute">{note}</p>}
-      </section>
-      <div className="px-5 pb-8 space-y-2.5 pt-6">{actions}</div>
+    <main className="app" style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="content" style={{ display: 'flex', flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+        <section className={`error-card ${STATUS[tone] || STATUS.info}`} aria-labelledby="error-title">
+          {glyph ? (
+            <div className="error-code" aria-hidden="true">{glyph}</div>
+          ) : (
+            <div className="error-code" aria-hidden="true"><Icon name={icon} className="h-12 w-12" /></div>
+          )}
+          <h1 id="error-title" style={{ margin: '0.7rem 0 0', fontSize: '1.05rem' }}>{title}</h1>
+          <p>{body}</p>
+          {detail && <p role="status">{detail}</p>}
+          {extra}
+          {note && <div className="offline-note" style={{ display: 'block' }}>{note}</div>}
+          <div className="actions error-pages-variant">{actions}</div>
+        </section>
+      </div>
     </main>
   );
 }
-

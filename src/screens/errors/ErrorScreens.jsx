@@ -1,19 +1,19 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import ErrorScreen from '../../components/ui/ErrorScreen';
-import Button from '../../components/ui/Button';
+import ErrorScreen, { ErrorAction } from '../../components/ui/ErrorScreen';
 
 export function NoConnection() {
   const navigate = useNavigate();
   return (
     <ErrorScreen
       tone="warn"
-      icon="wifioff"
-      title="No internet"
-      body="We can't reach guessIo. Check your Wi-Fi or mobile data and try again."
+      glyph={'\u2301'}
+      title="You are offline"
+      body="We cannot reach the guessIo servers right now, but you can still keep practicing."
+      note="Solo practice is still available on this device."
       actions={(
         <>
-          <Button onClick={() => window.location.reload()}>Try again</Button>
-          <Button variant="outline" onClick={() => navigate('/guest-home', { replace: true })}>Play solo offline</Button>
+          <ErrorAction onClick={() => window.location.reload()}>Check connection</ErrorAction>
+          <ErrorAction kind="solo" onClick={() => navigate('/guest-home', { replace: true })}>Play solo</ErrorAction>
         </>
       )}
     />
@@ -27,14 +27,14 @@ export function ServerError() {
   return (
     <ErrorScreen
       tone="bad"
-      icon="server"
-      title="Something broke"
-      body="Our servers hit a problem, not you. We're looking into it."
+      glyph="500"
+      title="Something went wrong"
+      body="The arena hit an unexpected error. Try again in a moment."
       note={errorId ? `Error ID ${errorId}` : undefined}
       actions={(
         <>
-          <Button onClick={() => window.location.reload()}>Try again</Button>
-          <Button variant="outline" onClick={() => navigate('/dashboard', { replace: true })}>Back home</Button>
+          <ErrorAction onClick={() => window.location.reload()}>Retry</ErrorAction>
+          <ErrorAction kind="secondary" onClick={() => navigate('/dashboard', { replace: true })}>Back home</ErrorAction>
         </>
       )}
     />
@@ -49,14 +49,14 @@ export function RoomNotFound() {
   return (
     <ErrorScreen
       tone="info"
-      icon="nofind"
+      glyph="404"
       title="Room not found"
       body="That room code is invalid, or the match has already ended."
       note={roomCode ? `Room code ${roomCode}` : undefined}
       actions={(
         <>
-          <Button onClick={() => navigate('/play', { replace: true })}>Try a different code</Button>
-          <Button variant="outline" onClick={() => navigate('/dashboard', { replace: true })}>Back home</Button>
+          <ErrorAction onClick={() => navigate('/play', { replace: true })}>Try a different code</ErrorAction>
+          <ErrorAction kind="secondary" onClick={() => navigate('/dashboard', { replace: true })}>Back home</ErrorAction>
         </>
       )}
     />
@@ -69,10 +69,10 @@ export function NotFound() {
   return (
     <ErrorScreen
       tone="info"
-      icon="nofind"
-      title="Page not found"
-      body="We couldn't find what you were looking for. It may have moved or never existed."
-      actions={<Button onClick={() => navigate('/dashboard', { replace: true })}>Back home</Button>}
+      glyph="404"
+      title="Code not found"
+      body="This page does not exist or the code you followed has expired."
+      actions={<ErrorAction onClick={() => navigate('/dashboard', { replace: true })}>Back home</ErrorAction>}
     />
   );
 }
@@ -80,11 +80,11 @@ export function NotFound() {
 export function Maintenance() {
   return (
     <ErrorScreen
-      tone="warn"
-      icon="history"
-      title="Back soon"
-      body="guessIo is down for planned maintenance. Please check again shortly."
-      actions={<Button onClick={() => window.location.reload()}>Check again</Button>}
+      tone="vio"
+      glyph={'\u25CC'}
+      title="Arena maintenance"
+      body="guessIo is being tuned behind the scenes. Multiplayer will return as soon as the work is complete."
+      actions={<ErrorAction onClick={() => window.location.reload()}>Check again</ErrorAction>}
     />
   );
 }
@@ -93,18 +93,16 @@ export function Unauthorized() {
   const navigate = useNavigate();
   return (
     <ErrorScreen
-      tone="mute"
-      icon="lock"
+      tone="warn"
+      glyph="401"
       title="You were signed out"
       body="Your session expired. Log in again to pick up where you left off."
       actions={(
         <>
-          <Button onClick={() => navigate('/login', { replace: true })}>Log in again</Button>
-          <Button variant="outline" onClick={() => navigate('/guest-home', { replace: true })}>Continue as guest</Button>
+          <ErrorAction onClick={() => navigate('/login', { replace: true })}>Log in again</ErrorAction>
+          <ErrorAction kind="secondary" onClick={() => navigate('/guest-home', { replace: true })}>Continue as guest</ErrorAction>
         </>
       )}
     />
   );
 }
-
-export { Suspended, Banned } from './AccountLocked';

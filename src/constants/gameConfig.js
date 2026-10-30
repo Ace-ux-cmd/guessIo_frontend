@@ -7,8 +7,6 @@ export { PLAYER_COUNT_CONFIG, MAX_ROUNDS_PER_MATCH } from '../game/matchConfig';
 
 export const SUPPORTED_PLAYER_COUNTS = [2, 3, 4];
 
-export const MATCH_TYPES = ['CASUAL', 'RANKED'];
-export const DIFFICULTIES = ['STANDARD', 'HARDCORE'];
 
 export const POINTS_TABLE = {
   STANDARD: { WIN: 3, DRAW: 1, LOSS: 0 },

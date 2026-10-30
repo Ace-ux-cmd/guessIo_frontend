@@ -1,6 +1,7 @@
 import { io } from 'socket.io-client';
 import { useAuthStore } from '../stores/authStore';
 import { refreshAccessToken } from '../api/client';
+import { APP_VERSION } from '../lib/version';
 
 const WS_URL = import.meta.env.VITE_WS_URL;
 
@@ -10,7 +11,7 @@ const WS_URL = import.meta.env.VITE_WS_URL;
 // screen with an active session. Left uncapped (the library default is
 // Infinity), the client would retry silently forever and that modal would
 // never appear.
-export const RECONNECT_ATTEMPT_LIMIT = 3;
+const RECONNECT_ATTEMPT_LIMIT = 3;
 
 let socket = null;
 
@@ -50,7 +51,7 @@ export function getSocket() {
     // app holds at that moment rather than the one from when the socket was
     // first created.
     auth: (sendAuth) => {
-      currentAccessToken().then((token) => sendAuth({ token }));
+      currentAccessToken().then((token) => sendAuth({ token, clientVersion: APP_VERSION }));
     },
     reconnectionAttempts: RECONNECT_ATTEMPT_LIMIT,
   });

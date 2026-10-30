@@ -1,20 +1,18 @@
+const RINGS = ['#8DFF39', '#00E5FF', '#9C4DFF', '#FFBA37'];
+
 /**
- * Initial-letter avatar (hue derived from the name) from the redesign.
- * If the backend supplies an avatarUrl, that image is used instead.
- * `name` is the display name; `size` is px.
+ * Round avatar with an accent ring. The ring colour is derived from the name,
+ * so the same player always gets the same colour. A supplied avatarUrl wins
+ * over the silhouette. `name` is the display name; `size` is px.
  */
-export default function Avatar({ name = '?', size = 36, url, className = '' }) {
+export default function Avatar({ name = '?', size = 36, url, className = '', active = false }) {
   const label = name || '?';
   let h = 0;
-  for (const c of label) h = (h * 31 + c.charCodeAt(0)) % 360;
-  const style = {
-    width: size,
-    height: size,
-    fontSize: size * 0.42,
-    background: `hsl(${h} 30% 15%)`,
-    color: `hsl(${h} 65% 70%)`,
-    boxShadow: `inset 0 0 0 1px hsl(${h} 30% 28%)`,
-  };
+  for (const c of label) h = (h * 31 + c.charCodeAt(0)) % RINGS.length;
+  const ring = RINGS[h];
+  // --ui is 0.85 on compact screens and 1 on Home (see app.css), so avatars scale with the rest of the UI.
+  const dim = `calc(${size}px * var(--ui, 1))`;
+  const style = { width: dim, height: dim, border: `2px solid ${ring}`, background: `${ring}26` };
   if (url) {
     style.backgroundImage = `url(${url})`;
     style.backgroundSize = 'cover';
@@ -22,12 +20,18 @@ export default function Avatar({ name = '?', size = 36, url, className = '' }) {
   }
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-full font-bold shrink-0 select-none ${className}`}
+      className={`grid shrink-0 place-items-center overflow-hidden rounded-full select-none ${active ? 'avt-on' : ''} ${className}`.trim()}
       style={style}
       role={url ? 'img' : undefined}
       aria-label={url ? label : undefined}
+      aria-hidden={url ? undefined : true}
     >
-      {url ? '' : label === '?' ? '?' : label[0].toUpperCase()}
+      {!url && (
+        <svg viewBox="0 0 24 24" style={{ width: '62%', height: '62%' }}>
+          <circle cx="12" cy="9" r="4.2" fill={ring} />
+          <path d="M3.5 22c.8-5 4.2-7.5 8.5-7.5s7.7 2.5 8.5 7.5z" fill={ring} />
+        </svg>
+      )}
     </span>
   );
 }

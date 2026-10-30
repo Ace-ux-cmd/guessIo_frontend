@@ -3,13 +3,13 @@
  * so guest matches score guesses identically to real matches.
  */
 
-export const CELL = {
+const CELL = {
   CORRECT_POSITION: 'CORRECT_POSITION',
   WRONG_POSITION: 'WRONG_POSITION',
   NOT_PRESENT: 'NOT_PRESENT',
 };
 
-export function evaluateStandard(guess, secretCode) {
+function evaluateStandard(guess, secretCode) {
   if (guess.length !== secretCode.length) {
     throw new Error('Guess and secret code length mismatch.');
   }
@@ -40,7 +40,7 @@ export function evaluateStandard(guess, secretCode) {
   };
 }
 
-export function evaluateHardcore(guess, secretCode) {
+function evaluateHardcore(guess, secretCode) {
   const { cellFeedback, correctPositionCount, wrongPositionCount, isWinningGuess } = evaluateStandard(
     guess,
     secretCode

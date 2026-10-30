@@ -48,6 +48,7 @@ const initialState = {
   guessLog: [], // { playerId, guess, guessNumber }
   myFeedbackHistory: [], // feedback objects for the current round, in guess order
   lastRejection: null,
+  guessPending: false, // a guess was sent and the server has not answered yet; blocks a second send
   score: {},
   roundResult: null, // { roundNumber, winnerId, secretCode, score, guessLog, nextRoundStartsInSeconds }
   matchResult: null, // { winnerId, finalScore, ratingChanges, pointsEarned }
@@ -61,7 +62,20 @@ const initialState = {
   // counter rather than a boolean so Gameplay.jsx's effect fires on every
   // request even if two arrive before it re-renders once.
   resignPromptRequestId: 0,
+  turnSeq: 0, // bumps on every turn.started, so a second turn in a row (Extra Turn) restarts the countdown
+  // Skills. skillLobby is public and only exists before the match starts.
+  // mySkill and xray are this player's own and never carry anyone else's.
+  skillLobby: null, // { order, activePickerId, secondsPerPick, skills, picks }
+  skillLobbyEndsAt: null, // client clock time the current pick runs out
+  mySkill: null, // { skill, used, targetId }
+  xray: null, // { targetId, dead, feed: [{ guess, guessNumber, feedback }] }
+  skillToast: null, // { id, text, kind, ms }
+  frozenNotice: null, // { id } shown to the player whose turn was skipped by Freeze
 };
+
+
+let toastCounter = 0;
+const toast = (text, kind = 'info', ms = 3500) => ({ id: (toastCounter += 1), text, kind, ms });
 
 export const useMatchStore = create((set, get) => ({
   ...initialState,
@@ -78,6 +92,11 @@ export const useMatchStore = create((set, get) => ({
       status: 'FOUND',
       players: payload.players,
       config: payload.config,
+      skillLobby: null,
+      mySkill: null,
+      xray: null,
+      skillToast: null,
+      frozenNotice: null,
     });
   },
 
@@ -88,6 +107,7 @@ export const useMatchStore = create((set, get) => ({
 
   onRoundStarted: (payload) =>
     set({
+      guessPending: false,
       status: 'ACTIVE',
       roundNumber: payload.roundNumber,
       guessLimit: payload.guessLimit,
@@ -96,6 +116,7 @@ export const useMatchStore = create((set, get) => ({
       myFeedbackHistory: [],
       roundResult: null,
       lastRejection: null,
+      xray: null, // X-Ray lasts one round
     }),
 
   // Clears any stale guess.rejected banner (e.g. a late/NOT_YOUR_TURN
@@ -103,20 +124,25 @@ export const useMatchStore = create((set, get) => ({
   // actually moves on - otherwise it lingers on screen through the rest
   // of the round, since nothing else clears it until onRoundStarted.
   onTurnStarted: (payload) =>
-    set({
+    set((state) => ({
+      turnSeq: state.turnSeq + 1,
       activePlayerId: payload.activePlayerId,
       turnDurationSeconds: payload.turnDurationSeconds,
       turnRemainingSeconds: null,
       lastRejection: null,
-    }),
+      guessPending: false,
+    })),
+
+  // Called by the screen right after it emits guess.submit.
+  onGuessSent: () => set({ guessPending: true }),
 
   onGuessAccepted: (payload) =>
-    set((state) => ({ guessLog: [...state.guessLog, payload], inactivityWarning: null, lastRejection: null })),
+    set((state) => ({ guessLog: [...state.guessLog, payload], inactivityWarning: null, lastRejection: null, guessPending: false })),
 
   onGuessFeedback: (payload) =>
     set((state) => ({ myFeedbackHistory: [...state.myFeedbackHistory, payload] })),
 
-  onGuessRejected: (payload) => set({ lastRejection: payload }),
+  onGuessRejected: (payload) => set({ lastRejection: payload, guessPending: false }),
 
   onTurnExpired: () => set({ lastRejection: null }),
 
@@ -125,6 +151,7 @@ export const useMatchStore = create((set, get) => ({
   onRoundEnded: (payload) =>
     set((state) => ({
       status: 'ROUND_ENDED',
+      guessPending: false,
       roundResult: payload,
       score: payload.score,
       inactivityWarning: null,
@@ -138,12 +165,12 @@ export const useMatchStore = create((set, get) => ({
   // or not they've reached/left Results yet.
   onMatchEnded: (payload) => {
     persistMatchId(null);
-    set({ status: 'ENDED', matchResult: payload });
+    set({ status: 'ENDED', matchResult: payload, guessPending: false });
   },
 
   onMatchCancelled: (payload) => {
     persistMatchId(null);
-    set({ status: 'CANCELLED', cancellation: payload });
+    set({ status: 'CANCELLED', cancellation: payload, guessPending: false });
   },
 
   onPlayerDisconnected: (payload) =>
@@ -164,6 +191,7 @@ export const useMatchStore = create((set, get) => ({
       const sameMoment = state.matchId === snapshot.matchId && state.status === snapshot.status && state.roundNumber === snapshot.roundNumber;
       return {
       matchId: snapshot.matchId,
+      guessPending: false,
       status: snapshot.status,
       config: snapshot.config || state.config,
       players: snapshot.players || state.players,
@@ -181,11 +209,56 @@ export const useMatchStore = create((set, get) => ({
       matchResult: snapshot.matchResult ?? null,
       cancellation: snapshot.cancellation ?? null,
       disconnectedPlayerIds: snapshot.disconnectedPlayerIds ?? [],
+      skillLobby: snapshot.skillLobby ?? null,
+      skillLobbyEndsAt: snapshot.skillLobby?.activePickerId ? Date.now() + (snapshot.skillLobby.secondsPerPick || 10) * 1000 : snapshot.skillLobby?.closesInMs ? Date.now() + snapshot.skillLobby.closesInMs : null,
+      mySkill: snapshot.mySkill ? { skill: snapshot.mySkill.skill, used: snapshot.mySkill.used, targetId: snapshot.mySkill.targetId } : state.mySkill,
+      xray: snapshot.mySkill?.xray ?? null,
       lastRejection: sameMoment ? state.lastRejection : null,
       inactivityWarning: sameMoment ? state.inactivityWarning : null,
       };
     });
   },
+
+  onSkillLobby: (payload) =>
+    set({
+      skillLobby: payload,
+      // Either the active picker's deadline, or (after the last pick) when the lobby closes.
+      skillLobbyEndsAt: payload.activePickerId ? Date.now() + payload.secondsPerPick * 1000 : payload.closesInMs ? Date.now() + payload.closesInMs : null,
+    }),
+  onSkillLobbyClosed: () => set({ skillLobby: null, skillLobbyEndsAt: null }),
+  onSkillAssigned: (payload) => set({ mySkill: { skill: payload.skill, used: false, targetId: null } }),
+
+  // Private results only ever arrive on this player's own socket.
+  onSkillResult: (payload) =>
+    set((state) => {
+      const mine = { ...(state.mySkill || {}), skill: payload.skill };
+      switch (payload.skill) {
+        case 'REVEAL_POSITION':
+          // The pattern shows blanks for every unknown position, e.g. "___5". Five seconds, then gone.
+          return { mySkill: { ...mine, used: true }, skillToast: toast(payload.pattern, 'reveal', 5000) };
+        case 'EXTRA_TURN':
+          return { mySkill: { ...mine, used: true }, skillToast: toast('Extra guess ready. Guess again after this one.', 'info') };
+        case 'FREEZE':
+          return { mySkill: { ...mine, used: true, targetId: payload.targetId }, skillToast: toast('Frozen. Their next turn is skipped.', 'info') };
+        case 'XRAY_VISION':
+          if (payload.status === 'DEAD') {
+            return { xray: state.xray ? { ...state.xray, dead: true } : null, skillToast: toast('X-Ray lost. Your target left the round.', 'warn') };
+          }
+          return { mySkill: { ...mine, used: true, targetId: payload.targetId }, xray: { targetId: payload.targetId, dead: false, feed: [] }, skillToast: toast('X-Ray on. You see their next guesses.', 'info') };
+        default:
+          return {};
+      }
+    }),
+  onSkillXray: (entry) =>
+    set((state) => ({
+      xray: state.xray ? { ...state.xray, feed: [...state.xray.feed, { guess: entry.guess, guessNumber: entry.guessNumber, feedback: entry.feedback }] } : state.xray,
+    })),
+  onSkillFrozen: () => set({ frozenNotice: { id: (toastCounter += 1) } }),
+  clearFrozenNotice: () => set({ frozenNotice: null }),
+  // Someone aimed X-Ray Vision at this player. The server never says who, and neither does the message.
+  onSkillMonitored: () => set({ skillToast: toast("You're being monitored", 'warn', 4000) }),
+  onSkillRejected: (payload) => set({ skillToast: toast(payload.message || 'That skill cannot be used now.', 'warn') }),
+  clearSkillToast: (id) => set((state) => (state.skillToast && state.skillToast.id === id ? { skillToast: null } : {})),
 
   // See resignPromptRequestId above.
   requestResignPrompt: () => set((state) => ({ resignPromptRequestId: state.resignPromptRequestId + 1 })),

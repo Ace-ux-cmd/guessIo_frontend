@@ -28,6 +28,9 @@ npm run dev              # http://localhost:5173
 
 ## Scripts
 
+`npm test` runs the Vitest suite (screens render, skills, version helpers).
+
+
 | Script | What it does |
 |---|---|
 | `npm run dev` | Vite dev server on port 5173 |
@@ -49,12 +52,13 @@ The backend's `CLIENT_ORIGIN` must include the origin this app is served from.
 ## Features
 
 - Google sign-in with a one-time mandatory username step
-- Matchmaking for Ranked and Casual, private rooms with a room code, 2 to 4 players, Standard and Hardcore rules
+- Matchmaking for Ranked and Casual, Custom rooms with a room code, 2 to 4 players, Standard and Hardcore rules
 - Live gameplay with turn timer, private feedback colors, round results and match results
 - Reconnect handling: banner, automatic retries, "Could not reconnect" dialog, full match restore
 - Guest and Practice mode (vs computer or pass and play) with local resume
 - Profile, achievements with unlock prompts, match history and details, leaderboards (top 20)
 - Settings, Help and feedback, account locked screens with appeals, error screens
+- v2.0.0: friends and search, public profiles, block and report, privacy settings, Daily Challenge, in-match skills, push notification settings
 - Static pages: game guide, Privacy Policy, Terms of Service
 
 ## Routes
@@ -70,6 +74,8 @@ The backend's `CLIENT_ORIGIN` must include the origin this app is served from.
 | `/history`, `/history/:id` | Match history and details |
 | `/leaderboards` | Leaderboards |
 | `/settings`, `/support` | Settings, Help and feedback |
+| `/friends`, `/friends/add`, `/players/:username` | Friends, search, public profile |
+| `/daily` | Daily Challenge |
 | `/error/offline`, `/error/server`, `/error/room-not-found`, `/error/maintenance`, `/error/unauthorized`, `/error/suspended`, `/error/banned` | Error screens |
 
 Signed-in routes are protected by `RequireAuth`. Unknown paths show the Page not found screen.

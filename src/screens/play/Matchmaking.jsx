@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import Avatar from '../../components/ui/Avatar';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { Banner } from '../../components/ui/Feedback';
 import ActiveMatchDialog from '../../components/ui/ActiveMatchDialog';
 import ReconnectModal from '../../components/ui/ReconnectModal';
@@ -17,6 +16,7 @@ function formatElapsed(seconds) {
 
 export default function Matchmaking() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
   const [elapsed, setElapsed] = useState(0);
   const [staleMatchId, setStaleMatchId] = useState(null);
@@ -36,6 +36,14 @@ export default function Matchmaking() {
   useMatchSocket();
   const reconnectGate = useReconnectGate();
 
+  // Joining the queue takes a deliberate tap on Start in Play, which navigates here
+  // with queueIntent. Reaching this URL any other way (Back, Forward, a refresh, a
+  // bookmark) must never put the player in a queue, so it goes to /play instead.
+  const queueIntent = useRef(location.state?.queueIntent === true);
+  const joinedRef = useRef(false);
+  const statusRef = useRef(status);
+  statusRef.current = status;
+
   useEffect(() => {
     // Back-navigation can land here while a match is already running; joining
     // the queue again would pull the player out of it, so go back to the match.
@@ -43,13 +51,23 @@ export default function Matchmaking() {
       navigate('/gameplay', { replace: true });
       return undefined;
     }
+    if (!queueIntent.current) {
+      navigate('/play', { replace: true });
+      return undefined;
+    }
+    // Use the permission up: this history entry can no longer queue anyone, even if
+    // it is reached again later.
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: { queueIntent: false } });
     // Reset to 1 (just me) before joining, in case a previous queue attempt
     // in this session left a stale count in the store.
+    joinedRef.current = true;
     joinQueue();
     const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => {
       clearInterval(interval);
-      if (status !== 'FOUND') emit('queue.leave');
+      // statusRef, not status: the closure above would still hold the status from the
+      // first render and always ask to leave, even right after a match was found.
+      if (joinedRef.current && statusRef.current !== 'FOUND') emit('queue.leave');
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -107,6 +125,9 @@ export default function Matchmaking() {
   const found = status === 'FOUND';
   const myName = user?.displayName || user?.username || 'You';
 
+  // Nothing to show while the redirect above runs.
+  if (!queueIntent.current && !matchInProgress) return null;
+
   // Seats are filled from the live queue count. The server reports how many
   // players are waiting, not who they are, so other seats show no names.
   const others = queuePlayers.filter((p) => p.userId !== user?.id);
@@ -118,38 +139,55 @@ export default function Matchmaking() {
 
   return (
     <>
-      <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col px-5 pt-6 pb-8">
-        <p className="text-mute text-sm">{matchTypeLabel(matchType)}, {playerCount} players, {difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}</p>
-        <h1 className="mt-1 text-3xl font-bold">{found ? 'Match found' : 'Finding players'}</h1>
-        <p className="mt-1 text-sm text-mute" role="status">
-          {open ? `Waiting for ${open} more player${open > 1 ? 's' : ''}` : 'Everyone is in'}
-        </p>
+      <main className="app">
+        <header className="topbar">
+          <button type="button" onClick={cancel} className="back" aria-label="Leave matchmaking">&larr;</button>
+          <div className="header-copy"><p className="eyebrow">Matchmaking</p></div>
+        </header>
 
-        {rejection && <div className="mt-4"><Banner variant="error">{rejection.message}</Banner></div>}
+        <div className="content matchmaking-variant">
+          <section className="queue-hero" aria-live="polite">
+            <div className="signal" aria-hidden="true">&#x2301;</div>
+            <h1>{found ? 'Match found' : 'Finding opponents'}</h1>
+            <p role="status">{open ? `Waiting for ${open} more player${open > 1 ? 's' : ''}` : 'Everyone is in'}</p>
+            <div className="setup-summary matchmaking-variant">
+              <span className="chip">{matchTypeLabel(matchType)}</span>
+              <span className="chip">{playerCount} players</span>
+              <span className="chip">{difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}</span>
+            </div>
+          </section>
 
-        <div className="mt-8 space-y-3">
-          {seats.map((seat, i) => {
-            const searching = seat.state === 'searching';
-            const name = seat.state === 'me' ? myName : seat.player?.username || 'Player';
-            const avatarUrl = seat.state === 'me' ? user?.avatarUrl : seat.player?.avatarUrl;
-            return (
-              <div key={i} className={`flex items-center gap-4 p-4 rounded-xl border ${searching ? 'border-dashed border-line' : 'border-g bg-s2'}`}>
-                {searching
-                  ? <span className="w-10 h-10 rounded-full border-2 border-line border-t-g animate-spin" aria-hidden="true" />
-                  : <Avatar name={name} size={40} url={avatarUrl} />}
-                <span className={`flex-1 font-semibold truncate ${searching ? 'text-mute' : ''}`}>{searching ? 'Open seat' : name}</span>
-                <span className={`text-sm font-semibold ${searching ? 'text-mute' : 'text-g'}`}>
-                  {searching ? 'Searching' : seat.state === 'me' ? 'Ready' : 'Joined'}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+          {rejection && <div className="mt-4"><Banner variant="error">{rejection.message}</Banner></div>}
 
-        <div className="mt-auto text-center pt-8">
-          <div className="font-display font-black text-3xl tnum">{formatElapsed(elapsed)}</div>
-          <p className="text-sm text-mute mt-1">Usually 10 to 30 seconds</p>
-          <button type="button" onClick={cancel} className="mt-5 block w-full h-12 rounded-lg border border-line font-semibold">Cancel</button>
+          <section className="section" aria-labelledby="players-title">
+            <div className="section-heading">
+              <h2 id="players-title">Players in queue</h2>
+              <span>{joined} / {playerCount || 1} found</span>
+            </div>
+            <div className="players">
+              {seats.map((seat, i) => {
+                const searching = seat.state === 'searching';
+                const name = seat.state === 'me' ? myName : seat.player?.username || 'Searching...';
+                const initial = searching ? '?' : (name || '?').charAt(0).toUpperCase();
+                return (
+                  <article key={i} className={`player matchmaking-variant${seat.state === 'me' ? ' you' : ''}`}>
+                    <span className="avatar">{initial}</span>
+                    <div className="player-info">
+                      <strong>{name}</strong>
+                      <span>{seat.state === 'me' ? 'You · Ready' : searching ? 'Open seat' : 'Ready to crack'}</span>
+                    </div>
+                    <span className="player-skill is-waiting">{searching ? '-' : 'Waiting'}</span>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+
+          <div className="mt-6 text-center">
+            <p className="font-display text-3xl font-bold tnum">{formatElapsed(elapsed)}</p>
+          </div>
+
+          <button type="button" onClick={cancel} className="cancel">Cancel search</button>
         </div>
       </main>
       <ReconnectModal open={reconnectGate.exhausted} onRetry={reconnectGate.retry} />

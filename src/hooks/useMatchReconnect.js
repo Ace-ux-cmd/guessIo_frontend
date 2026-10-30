@@ -13,7 +13,7 @@ const RECONNECT_RESPONSE_TIMEOUT_MS = 8000;
 // brief radio drop) would otherwise sit on a stale round or turn until the
 // next event happened to arrive, and two devices in one match would disagree.
 const RESYNC_INTERVAL_MS = 10_000;
-const LIVE_STATUSES = ['STARTING', 'ACTIVE', 'ROUND_ENDED'];
+const LIVE_STATUSES = ['FOUND', 'STARTING', 'ACTIVE', 'ROUND_ENDED'];
 
 /**
  * Keeps the client in step with the server's copy of the match. Two cases:

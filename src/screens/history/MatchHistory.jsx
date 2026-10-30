@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import MatchCard from '../../components/ui/MatchCard';
 import BottomNav from '../../components/ui/BottomNav';
 import Icon from '../../components/ui/Icon';
-import { LoadingScreen, ErrorState, EmptyState } from '../../components/ui/Feedback';
+import { PageSkeleton, ErrorState, EmptyState } from '../../components/ui/Feedback';
 import * as matchesApi from '../../api/matches.api';
-import { formatRelativeTime, joinNames, matchTypeLabel, scoreText, signed } from '../../lib/format';
 
 const FILTERS = ['All', 'Ranked', 'Casual', 'Wins', 'Losses'];
 const PAGE_SIZE = 20;
-const CHIP = 'inline-flex items-center h-6 px-2 rounded text-xs font-semibold border text-mute border-line';
 
 function dateGroupLabel(dateStr) {
   const date = new Date(dateStr);
@@ -19,14 +17,7 @@ function dateGroupLabel(dateStr) {
   yesterday.setDate(now.getDate() - 1);
   if (same(date, now)) return 'Today';
   if (same(date, yesterday)) return 'Yesterday';
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
-
-function outcomeView(m) {
-  if (m.outcome === 'WIN') return { bar: 'bg-g', text: 'text-g', label: 'Win', delta: 'text-g' };
-  if (m.outcome === 'LOSS') return { bar: 'bg-bad', text: 'text-bad', label: m.myForfeited ? 'Forfeit' : 'Loss', delta: 'text-bad' };
-  if (m.outcome === 'CANCELLED') return { bar: 'bg-mute', text: 'text-mute', label: 'Cancelled', delta: 'text-mute' };
-  return { bar: 'bg-mute', text: 'text-mute', label: 'Draw', delta: 'text-mute' };
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 export default function MatchHistory() {
@@ -77,67 +68,50 @@ export default function MatchHistory() {
     return groups;
   }, [filtered]);
 
+  if (isLoading) return (<><PageSkeleton cards={5} /><BottomNav /></>);
+
   return (
     <>
-      <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-24">
-        <header className="px-5 pt-5 pb-3"><h1 className="text-2xl font-bold">Matches</h1></header>
+      <main className="app">
+        <header className="topbar">
+          <div>
+            <h1 className="sr-only">Matches</h1>
+            <p className="eyebrow">Match history</p>
+          </div>
+        </header>
 
-        <div className="flex gap-2 overflow-x-auto px-5 pb-3" role="group" aria-label="Filter matches">
+        <div className="filters" role="tablist" aria-label="Match filters">
           {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-              className={`shrink-0 h-9 px-4 rounded-full border text-sm font-semibold ${filter === f ? 'border-g bg-s2 text-g' : 'border-line'}`}
-            >
-              {f}
-            </button>
+            <button key={f} type="button" role="tab" aria-selected={filter === f} className={`filter${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>{f}</button>
           ))}
         </div>
 
-        {isLoading ? <LoadingScreen /> : isError ? (
-          <div className="px-5"><ErrorState description="Could not load match history." /></div>
-        ) : filtered.length === 0 ? (
-          <div className="px-5"><EmptyState title="No matches yet" description="Your match history shows up here after your first game." /></div>
-        ) : (
-          <section className="px-5 space-y-2">
-            {[...grouped.entries()].map(([label, matches], gi) => (
-              <div key={label} className="space-y-2">
-                <h2 className={`text-sm font-semibold text-mute ${gi === 0 ? 'pt-1' : 'pt-3'}`}>{label}</h2>
-                {matches.map((m) => {
-                  const v = outcomeView(m);
-                  return (
-                    <Link key={m.id} to={`/history/${m.id}`} replace className="flex items-center gap-3 pr-4 bg-s1 rounded-md overflow-hidden">
-                      <span className={`w-1 self-stretch ${v.bar}`} />
-                      <div className="flex-1 py-3 min-w-0">
-                        <div className="font-semibold truncate">
-                          <span className={v.text}>{v.label}</span> against {joinNames(m.opponents.map((o) => o.username).filter(Boolean)).replace(' and ', ', ')}
-                        </div>
-                        <div className="mt-0.5 flex gap-1.5 flex-wrap">
-                          <span className={CHIP}>{matchTypeLabel(m.type)}</span>
-                          {m.difficulty && <span className={CHIP}>{m.difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}</span>}
-                          <span className="text-xs text-mute self-center">{formatRelativeTime(m.startedAt || m.endedAt)}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        {m.ratingChange !== null && m.ratingChange !== undefined && (
-                          <div className={`font-bold tnum ${v.delta}`}>{signed(m.ratingChange)}</div>
-                        )}
-                        <div className="text-xs text-mute tnum">{scoreText(m).replace('–', ' to ')}</div>
-                      </div>
-                    </Link>
-                  );
-                })}
-              </div>
-            ))}
-            {hasMore && (
-              <button type="button" onClick={() => setPage((p) => p + 1)} disabled={isFetching} className="w-full h-11 text-sm font-semibold text-mute inline-flex items-center justify-center gap-1">
-                {isFetching ? 'Loading…' : <>Load more<Icon name="down" className="w-4 h-4" /></>}
-              </button>
-            )}
-          </section>
-        )}
+        <section className="history matches-variant" aria-label="Matches grouped by date">
+          {isError ? (
+            <ErrorState description="Could not load match history." />
+          ) : filtered.length === 0 ? (
+            <EmptyState title="No matches here yet" description="Play one and it shows up." />
+          ) : (
+            <>
+              {[...grouped.entries()].map(([label, matches], i) => (
+                <section key={label} className="date-group" aria-labelledby={`group-${i}`}>
+                  <div className="date-heading">
+                    <h2 id={`group-${i}`}>{label}</h2>
+                    <span>{matches.length} {matches.length === 1 ? 'match' : 'matches'}</span>
+                  </div>
+                  <div className="match-list">
+                    {matches.map((m) => <MatchCard key={m.id} match={m} />)}
+                  </div>
+                </section>
+              ))}
+              {hasMore && (
+                <button type="button" onClick={() => setPage((p) => p + 1)} disabled={isFetching} className="load-more">
+                  {isFetching ? 'Loading...' : <>Load more<Icon name="down" className="h-4 w-4" /></>}
+                </button>
+              )}
+            </>
+          )}
+        </section>
       </main>
       <BottomNav />
     </>

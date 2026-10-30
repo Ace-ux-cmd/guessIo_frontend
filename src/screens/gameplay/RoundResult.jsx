@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import Avatar from '../../components/ui/Avatar';
-import Tile from '../../components/ui/Tile';
-import Button from '../../components/ui/Button';
 
 /** "1m 48s" for >=60s, "4.2s" for sub-minute (one decimal only when not whole). */
 function formatDuration(seconds) {
-  if (seconds === null || seconds === undefined) return '—';
+  if (seconds === null || seconds === undefined) return '-';
   if (seconds >= 60) {
     const m = Math.floor(seconds / 60);
     const s = Math.round(seconds % 60);
@@ -66,92 +64,117 @@ export default function RoundResult({ result, players, myUserId, onCountdownComp
   }
   const winnerTurns = guessesByPlayer[result.winnerId];
 
+  const roundsWon = (id) => result.score?.[id] ?? 0;
+  // The winner first; everyone else keeps the match's player order.
+  const ordered = [...players].sort((x, y) => Number(y.userId === result.winnerId) - Number(x.userId === result.winnerId));
+  const iWon = winner?.userId === myUserId;
+  const totalGuesses = result.guessLog ? result.guessLog.length : null;
+  const nextLabel = result.isFinalRound ? 'Match results' : `Round ${result.roundNumber + 1}`;
+
   return (
     <>
-      <section className="flex-1 px-5 pt-12 text-center">
-        <div className="text-sm text-mute">Round {result.roundNumber} complete</div>
-        <h1 className="mt-2 text-4xl font-bold">
-          {isDraw ? 'Round drawn' : winner?.userId === myUserId ? 'You cracked it' : `${winner?.username || 'Someone'} cracked it`}
-        </h1>
-        {!isDraw && winnerTurns != null && <p className="mt-1 text-mute">In {winnerTurns} {winnerTurns === 1 ? 'turn' : 'turns'}</p>}
+      <header className="topbar">
+        <div className="topbar-copy">
+          <p className="eyebrow">Round result</p>
+        </div>
+        <span className="round-state">Round <strong>{result.roundNumber} complete</strong></span>
+      </header>
 
-        <div className="mt-8 text-sm text-mute">The code was</div>
-        <div className="mt-3 flex justify-center gap-2">
+      <section className="result-hero" aria-labelledby="result-title">
+        <div className="result-mark">
+          {isDraw ? <span aria-hidden="true" style={{ fontSize: '1.8rem', fontWeight: 700 }}>=</span> : <Avatar name={winner?.username || '?'} url={winner?.avatarUrl} size={72} />}
+        </div>
+        <h1 id="result-title">
+          {isDraw ? 'Round drawn' : iWon ? 'You cracked it' : `${winner?.username || 'Someone'} cracked it`}
+        </h1>
+        <p>
+          {isDraw
+            ? 'Nobody solved the code this round.'
+            : winnerTurns != null
+              ? `${iWon ? 'You' : winner?.username || 'They'} solved the code in ${winnerTurns} ${winnerTurns === 1 ? 'turn' : 'turns'}.`
+              : 'The code was cracked.'}
+        </p>
+      </section>
+
+      <section className="code-card" aria-labelledby="code-title">
+        <p className="label" id="code-title">The shared code</p>
+        <div className="secret-code" role="img" aria-label={`The shared code is ${result.secretCode.split('').join(' ')}`}>
           {result.secretCode.split('').map((digit, i) => (
-            <span key={i} className="animate-pop" style={{ animationDelay: `${0.2 + i * 0.12}s` }}>
-              <Tile state="c" size="w-14 h-14 text-2xl">{digit}</Tile>
-            </span>
+            <span key={i} className="digit round-results-variant animate-pop" style={{ animationDelay: `${0.2 + i * 0.12}s` }}>{digit}</span>
           ))}
         </div>
+      </section>
 
-        <div className="mt-9 flex rounded-md bg-s1 py-4">
-          {players.map((p) => {
-            const lead = p.userId === result.winnerId;
+      <section className="section round-results-variant" aria-labelledby="standings-title">
+        <div className="section-heading round-results-variant">
+          <h2 id="standings-title">Round standings</h2>
+          <span>First to solve wins</span>
+        </div>
+        <div className="standings">
+          {ordered.map((p) => {
+            const isWinner = p.userId === result.winnerId;
+            const n = guessesByPlayer[p.userId] || 0;
             return (
-              <div key={p.userId} className="flex-1 text-center">
-                <Avatar name={p.username} size={36} url={p.avatarUrl} />
-                <div className={`text-sm mt-1 ${p.userId === myUserId || lead ? 'font-bold' : 'text-mute'}`}>{p.username}</div>
-                <div className={`font-display font-black text-2xl tnum ${lead ? 'text-g' : ''}`}>{result.score[p.userId] ?? 0}</div>
-              </div>
+              <article key={p.userId} className={`player round-results-variant${isWinner ? ' winner' : ''}`}>
+                <span className="place" aria-hidden="true">{isWinner ? '1' : ''}</span>
+                <Avatar name={p.username} url={p.avatarUrl} size={32} />
+                <span className="player-copy">
+                  <span className="player-name round-results-variant">{p.userId === myUserId ? `${p.username} (you)` : p.username}</span>
+                  <span className="player-note">{isWinner ? 'Cracked the code' : `${n} ${n === 1 ? 'guess' : 'guesses'}`}</span>
+                </span>
+                <span className="rounds-won">{roundsWon(p.userId)} {roundsWon(p.userId) === 1 ? 'round' : 'rounds'} won</span>
+              </article>
             );
           })}
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <div className="rounded-md bg-s1 p-3 text-left">
-            <div className="text-xs text-mute">Round time</div>
-            <div className="text-lg font-bold tnum">{formatDuration(result.roundTimeSeconds)}</div>
+        <div className="stats round-results-variant" aria-label="Round statistics" style={{ gridTemplateColumns: `repeat(${totalGuesses != null ? 3 : 2}, 1fr)` }}>
+          <div className="stat round-results-variant"><strong className="tnum">{formatDuration(result.roundTimeSeconds)}</strong><span>Round time</span></div>
+          <div className="stat round-results-variant">
+            <strong className="tnum">{formatDuration(result.fastestGuessSeconds)}</strong>
+            <span>Fastest guess{result.fastestGuessUsername ? ` (${result.fastestGuessUsername})` : ''}</span>
           </div>
-          <div className="rounded-md bg-s1 p-3 text-left">
-            <div className="text-xs text-mute">Fastest guess</div>
-            <div className="text-lg font-bold tnum">{formatDuration(result.fastestGuessSeconds)}</div>
-            {result.fastestGuessUsername && <div className="text-xs text-mute">{result.fastestGuessUsername}</div>}
-          </div>
+          {totalGuesses != null && <div className="stat round-results-variant"><strong className="tnum">{totalGuesses}</strong><span>Total guesses</span></div>}
         </div>
 
         {result.isFinalRound && result.allRounds && result.allRounds.length > 1 && (
-          <div className="mt-6 text-left">
-            <div className="text-sm text-mute mb-2">All codes this match</div>
-            <div className="space-y-2">
+          <>
+            <div className="section-heading round-results-variant"><h2>All codes this match</h2></div>
+            <div className="details" style={{ marginTop: 0, paddingBottom: '1.2rem' }}>
               {result.allRounds.map((r) => (
-                <div key={r.roundNumber} className="flex items-center justify-between rounded-md bg-s1 px-3 py-2">
-                  <span className="text-sm text-mute">Round {r.roundNumber}</span>
-                  <div className="flex gap-1">
-                    {r.secretCode.split('').map((d, i) => <Tile key={i} state="raw" size="w-7 h-7 text-sm">{d}</Tile>)}
-                  </div>
+                <div key={r.roundNumber} className="detail" style={{ alignItems: 'center' }}>
+                  <span>Round {r.roundNumber}</span>
+                  <span className="digits" style={{ gap: '0.25rem' }} role="img" aria-label={`Code ${r.secretCode.split('').join(' ')}`}>
+                    {r.secretCode.split('').map((d, i) => <span key={i} className="digit match-details-variant">{d}</span>)}
+                  </span>
                 </div>
               ))}
             </div>
-          </div>
+          </>
         )}
       </section>
 
-      <div className="px-5 pt-6">
+      <footer className="next-round">
         {manualAdvance ? (
           <>
-            <p className="text-center text-sm text-mute">{result.isFinalRound ? 'Match complete' : `Round ${result.roundNumber + 1} is ready`}</p>
-            <div className="mt-3">
-              <Button onClick={() => onCountdownComplete?.()}>{result.isFinalRound ? 'View match results' : 'Continue'}</Button>
-            </div>
+            <div className="countdown"><span>{result.isFinalRound ? 'Match complete' : `Round ${result.roundNumber + 1} is ready`}</span></div>
+            <button type="button" className="continue" onClick={() => onCountdownComplete?.()}>{result.isFinalRound ? 'View match results' : `Prepare for round ${result.roundNumber + 1}`}</button>
           </>
-        ) : (
-          remaining !== null && (
-            <div role="status">
-              <p className="text-center text-sm text-mute tnum">
+        ) : remaining !== null && (
+          <div role="status">
+            <div className="countdown">
+              <span className="tnum">
                 {result.isFinalRound
                   ? remaining > 0 ? `Match results in ${remaining}s` : 'Loading results…'
                   : remaining > 0 ? `Round ${result.roundNumber + 1} starts in ${remaining}s` : 'Starting next round…'}
-              </p>
-              <div className="mt-3 h-1 rounded-full bg-line overflow-hidden" aria-hidden="true">
-                <div
-                  className="h-full bg-g"
-                  style={{ width: `${Math.max(0, (remaining / result.nextRoundStartsInSeconds) * 100)}%`, transition: 'width 1s linear' }}
-                />
-              </div>
+              </span>
             </div>
-          )
+            <div className="countdown-bar" aria-hidden="true">
+              <div style={{ width: `${Math.max(0, (remaining / result.nextRoundStartsInSeconds) * 100)}%` }} />
+            </div>
+          </div>
         )}
-      </div>
+      </footer>
     </>
   );
 }

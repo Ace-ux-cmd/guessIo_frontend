@@ -4,6 +4,7 @@ import * as authApi from '../api/auth.api';
 import * as profileApi from '../api/profile.api';
 import { useAuthStore } from '../stores/authStore';
 import { disconnectSocket } from '../sockets/socketClient';
+import { markNewAccount } from '../components/ui/Welcome';
 
 export function useCurrentUser() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
@@ -35,6 +36,7 @@ export function useCompleteOnboarding() {
     mutationFn: authApi.completeOnboarding,
     onSuccess: (data) => {
       setSession(data);
+      markNewAccount(data?.user?.id);
       queryClient.invalidateQueries({ queryKey: ['me'] });
     },
   });
@@ -66,14 +68,6 @@ export function useLogout() {
 // sheet and its error message in place.
 export function useDeleteAccount() {
   return useMutation({ mutationFn: authApi.deleteAccount });
-}
-
-export function useUpdateProfile() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: profileApi.updateProfile,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
-  });
 }
 
 export function useAchievements() {

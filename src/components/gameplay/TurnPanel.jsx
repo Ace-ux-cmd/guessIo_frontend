@@ -1,16 +1,17 @@
 /**
- * Bottom panel of the gameplay screen: turn status on the left, countdown ring
- * on the right, and the input/keypad (children) underneath. The panel glows
- * green while it is the viewer's turn (see `.panel.on` in app.css).
+ * Bottom panel of the gameplay screen (turn-panel in gameplay.html): turn
+ * status, the skill button and the countdown on one row, the digit entry and
+ * keypad (children) underneath.
  */
-export default function TurnPanel({ myTurn, title, subtitle, timer, children }) {
+export default function TurnPanel({ myTurn, title, subtitle, timer, skillTab, children }) {
   return (
-    <section className={`panel px-4 pt-3 pb-4 bg-s1 border-t border-line ${myTurn ? 'on' : ''}`}>
-      <div className="flex items-end justify-between">
-        <div>
-          <div aria-live="polite" className={`text-3xl font-black ${myTurn ? 'text-g' : 'text-mute'}`}>{title}</div>
-          <div className="text-sm text-mute">{subtitle}</div>
+    <section className="turn-panel" aria-label="Your turn controls">
+      <div className="turn-status">
+        <div className="turn-copy" aria-live="polite">
+          <strong className={myTurn ? 'mine' : undefined}>{title}</strong>
+          <span>{subtitle}</span>
         </div>
+        {skillTab}
         {timer}
       </div>
       {children}

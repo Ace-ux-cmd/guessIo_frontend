@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
-import Tile from '../../components/ui/Tile';
-import Avatar from '../../components/ui/Avatar';
-import Button from '../../components/ui/Button';
 import { Banner } from '../../components/ui/Feedback';
+import Toggle from '../../components/ui/Toggle';
+import { SKILL_INFO, SKILL_ORDER, skillName } from '../../constants/skills';
 import ReconnectModal from '../../components/ui/ReconnectModal';
 import { emit, getSocket, connectSocket } from '../../sockets/socketClient';
 import { useMatchSocket } from '../../hooks/useMatchSocket';
 import { useReconnectGate } from '../../hooks/useReconnectGate';
 import { useAuthStore } from '../../stores/authStore';
+import { useFeatures } from '../../hooks/useFeatures';
 
-const CHIP = 'inline-flex items-center h-6 px-2 rounded text-xs font-semibold border text-mute border-line';
+/** K7M42Q -> K7M-42Q. Display only; the server always works with the plain code. */
+const formatCode = (code) => (code.length > 3 ? `${code.slice(0, 3)}-${code.slice(3)}` : code);
+/** Keeps letters and digits only, upper-cased, so a pasted "k7m-42q" joins like the plain code. */
+const cleanCode = (value) => value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
 export default function PrivateRoom() {
   const navigate = useNavigate();
@@ -24,6 +27,8 @@ export default function PrivateRoom() {
   const [joinCode, setJoinCode] = useState('');
   const [error, setError] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [skillsOn, setSkillsOn] = useState(true);
+  const { skills: skillsAvailable } = useFeatures();
 
   useMatchSocket();
   const reconnectGate = useReconnectGate();
@@ -105,12 +110,12 @@ export default function PrivateRoom() {
 
   function createRoom() {
     setError(null);
-    emit('room.create', { playerCount: initialPlayerCount, difficulty: initialDifficulty });
+    emit('room.create', { playerCount: initialPlayerCount, difficulty: initialDifficulty, skills: skillsAvailable && skillsOn });
   }
 
   function joinRoom() {
     setError(null);
-    emit('room.join', { roomCode: joinCode.trim().toUpperCase() });
+    emit('room.join', { roomCode: cleanCode(joinCode) });
   }
 
   function leaveRoom() {
@@ -127,47 +132,76 @@ export default function PrivateRoom() {
     if (room) emit('match.start', { roomId: room.roomId });
   }
 
-  function copyCode() {
-    if (!room) return;
-    navigator.clipboard?.writeText(room.roomCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+  async function copyCode(code) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setError('Copy is not available here. Select the code and copy it by hand.');
+    }
   }
 
   const isHost = room && user && room.hostUserId === user.id;
   const full = room && room.players.length === room.playerCount;
 
-  const header = (
-    <header className="flex items-center gap-1 px-4 pt-5 pb-3">
-      <button type="button" onClick={back} className="p-2 text-mute" aria-label={room ? 'Leave room' : 'Back'}><Icon name="back" /></button>
-      <h1 className="text-xl font-bold flex-1">Private room</h1>
-    </header>
-  );
-
   if (!room) {
+    const joinReady = cleanCode(joinCode).length === 6;
     return (
       <>
-        <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-6">
-          {header}
-          <section className="px-5 mt-3 space-y-4">
-            {error && <Banner variant="error">{error}</Banner>}
-            <div className="rounded-md bg-s1 border border-line p-5">
-              <h2 className="font-bold">Create a room</h2>
-              <p className="text-sm text-mute mt-1">{initialPlayerCount} players, {initialDifficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}. Share the code with friends.</p>
-              <div className="mt-4"><Button onClick={createRoom}>Create room</Button></div>
+        <main className="app" style={{ display: 'flex', flexDirection: 'column' }}>
+          <header className="topbar">
+            <button type="button" onClick={back} className="back" aria-label="Back to match setup">&larr;</button>
+            <div className="header-copy"><p className="eyebrow">Custom room</p></div>
+          </header>
+
+          <section className="content" style={{ textAlign: 'center' }}>
+            <div className="room-mark" aria-hidden="true"><Icon name="settings" className="w-5 h-5" /></div>
+            <h1>Build your room</h1>
+            <p className="intro">Invite your crew with a private code, or join a room someone has already created.</p>
+
+            {error && <div className="mt-4" style={{ textAlign: 'left' }}><Banner variant="error">{error}</Banner></div>}
+
+            <section className="room-card" aria-labelledby="create-room-title">
+              <p className="card-label" id="create-room-title">Your setup</p>
+              <div className="setup-summary" aria-label="Selected play setup">
+                <span className="chip">Custom</span>
+                <span className="chip">{initialPlayerCount} players</span>
+                <span className="chip">{initialDifficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}</span>
+              </div>
+              {skillsAvailable && (
+                <Toggle
+                  variant="custom-room"
+                  label="Skill power-ups"
+                  description="Give each player access to tactical abilities during the match."
+                  checked={skillsOn}
+                  onChange={setSkillsOn}
+                />
+              )}
+            </section>
+
+            <div className="join-divider">Have a code?</div>
+
+            <div className="join-panel">
+              <label id="join-title" htmlFor="join-code">Enter a room code</label>
+              <form className="join-row" onSubmit={(e) => { e.preventDefault(); if (joinReady) joinRoom(); }}>
+                <input
+                  className="join-input"
+                  id="join-code"
+                  value={joinCode}
+                  onChange={(e) => setJoinCode(formatCode(cleanCode(e.target.value).slice(0, 6)))}
+                  maxLength={7}
+                  placeholder="ABC-123"
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  aria-describedby="room-status"
+                />
+                <button type="submit" className="join-button" disabled={!joinReady}>Join room</button>
+              </form>
+              <p className="room-status" id="room-status" role="status">Room codes are 6 characters.</p>
             </div>
-            <div className="rounded-md bg-s1 border border-line p-5">
-              <label htmlFor="roomCode" className="font-bold block">Join with a code</label>
-              <input
-                id="roomCode"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                placeholder="Room code"
-                autoComplete="off"
-                className="mt-3 w-full h-12 px-4 rounded-md bg-bg border border-line text-ink placeholder:text-mute focus:border-g outline-none uppercase tracking-widest"
-              />
-              <div className="mt-3"><Button variant="outline" onClick={joinRoom} disabled={!joinCode.trim()}>Join room</Button></div>
-            </div>
+
+            <button type="button" onClick={createRoom} className="create-button">Create room <span aria-hidden="true">&rarr;</span></button>
           </section>
         </main>
         <ReconnectModal open={reconnectGate.exhausted} onRetry={reconnectGate.retry} />
@@ -176,67 +210,88 @@ export default function PrivateRoom() {
   }
 
   const emptySeats = Math.max(0, room.playerCount - room.players.length);
+  const displayCode = formatCode(room.roomCode);
 
   return (
     <>
-      <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-6">
-        {header}
-        {error && <div className="px-5 mt-1"><Banner variant="error">{error}</Banner></div>}
+      <main className="app">
+        <header className="topbar">
+          <button type="button" onClick={back} className="back" aria-label="Leave room">&larr;</button>
+          <div className="header-copy"><p className="eyebrow">Waiting room</p></div>
+        </header>
 
-        <section className="px-5 mt-3">
-          <div className="rounded-md bg-s1 border border-line p-5 text-center">
-            <div className="text-sm text-mute">Room code</div>
-            <div className="mt-3 flex justify-center gap-2" role="img" aria-label={`Room code ${[...room.roomCode].join(' ')}`}>
-              {[...room.roomCode].map((c, i) => <Tile key={i} state="raw" size="w-14 h-14 text-3xl">{c}</Tile>)}
+        <div className="content">
+          {error && <div className="mb-4"><Banner variant="error">{error}</Banner></div>}
+
+          <section className="room-hero" aria-label="Room information">
+            <p className="room-hero-label">Private room</p>
+            <div className="code-line">
+              <strong className="room-code room-variant">{displayCode}</strong>
+              <button type="button" className="copy-code" onClick={() => copyCode(room.roomCode)} aria-label={copied ? 'Room code copied' : 'Copy room code'}>
+                <Icon name={copied ? 'check' : 'copy'} className="w-4 h-4" />
+              </button>
             </div>
-            <button type="button" onClick={copyCode} className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-ink border border-line rounded-md px-3 h-9">
-              <Icon name={copied ? 'check' : 'copy'} className="w-4 h-4" />{copied ? 'Copied' : 'Copy code'}
-            </button>
-            <p className="mt-4 text-sm text-mute tnum">{room.players.length} of {room.playerCount} players joined</p>
-          </div>
-        </section>
+            <div className="room-details">
+              <span className="chip">Custom</span>
+              <span className="chip">{room.playerCount} players</span>
+              <span className="chip">{room.difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}</span>
+              <span className="chip">{room.skills ? 'Skills on' : 'Skills off'}</span>
+            </div>
+          </section>
 
-        <section className="px-5 mt-6">
-          <div className="flex items-baseline justify-between mb-2">
-            <h2 className="font-bold">Players</h2>
-            <span className="text-sm text-mute tnum">{room.players.length} of {room.playerCount}</span>
-          </div>
-          <div className="space-y-2">
-            {room.players.map((p) => (
-              <div key={p.userId} className="flex items-center gap-3 rounded-md bg-s1 p-3">
-                <Avatar name={p.username} size={40} url={p.avatarUrl} />
-                <div className="flex-1 font-semibold">{p.username}</div>
-                {p.userId === room.hostUserId && (
-                  <span className="inline-flex items-center h-6 px-2 rounded text-xs font-semibold border text-g border-g bg-s2">Host</span>
-                )}
+          <section className="section" aria-labelledby="players-title">
+            <div className="section-heading">
+              <h2 id="players-title">Players in queue</h2>
+              <span>{room.players.length} / {room.playerCount} joined</span>
+            </div>
+            <div className="players">
+              {room.players.map((p) => {
+                const isYou = user && p.userId === user.id;
+                const isHostPlayer = p.userId === room.hostUserId;
+                return (
+                  <article key={p.userId} className={`player room-variant${isYou ? ' you' : ''}`}>
+                    <span className="avatar" style={{ width: '2.2rem', height: '2.2rem', fontSize: '0.78rem' }}>{(p.username || '?').charAt(0).toUpperCase()}</span>
+                    <div className="player-info">
+                      <strong>{p.username}</strong>
+                      <span>{isYou ? `You${isHostPlayer ? ' · Room creator' : ''}` : 'Ready to crack'}</span>
+                    </div>
+                    <span className="host" style={{ visibility: isHostPlayer ? 'visible' : 'hidden' }}>Host</span>
+                  </article>
+                );
+              })}
+              {Array.from({ length: emptySeats }).map((_, i) => (
+                <div key={`empty-${i}`} className="empty">
+                  <span className="empty-icon" aria-hidden="true">+</span>
+                  <span>Waiting for one more player...</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {room.skills && (
+            <section className="section" aria-labelledby="skills-title">
+              <div className="section-heading">
+                <h2 id="skills-title">Skill slots</h2>
+                <span>Enabled for this room</span>
               </div>
-            ))}
-            {Array.from({ length: emptySeats }).map((_, i) => (
-              <div key={`empty-${i}`} className="flex items-center gap-3 rounded-md border border-dashed border-line p-3 text-mute">
-                <span className="w-10 h-10 rounded-md bg-s2" />Waiting for a player<span className="animate-blink">...</span>
+              <div className="skills room-variant">
+                {SKILL_ORDER.map((skill) => (
+                  <article key={skill} className="skill room-variant">
+                    <strong>{skillName(skill)}</strong>
+                    <p>{SKILL_INFO[skill]}</p>
+                  </article>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
+            </section>
+          )}
 
-        <section className="px-5 mt-6">
-          <h2 className="font-bold mb-2">Settings</h2>
-          <div className="flex flex-wrap gap-2">
-            <span className={CHIP}>{room.playerCount} players</span>
-            <span className={CHIP}>{room.difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}</span>
-            <span className={CHIP}>Casual</span>
-          </div>
-          <p className="mt-2 text-xs text-mute">Fixed when the room was created.</p>
-        </section>
-
-        <div className="mt-auto px-5 pt-8 space-y-2">
           {isHost ? (
             <>
-              <Button onClick={startMatch} disabled={!full}>Start match</Button>
-              <p className="text-center text-xs text-mute">{full ? 'Everyone is in. Start when ready.' : 'Waiting for all players to join.'}</p>
+              <button type="button" onClick={startMatch} disabled={!full} className="start">{full ? 'Match ready' : 'Waiting for players'} <span aria-hidden="true">&rarr;</span></button>
+              <p className="waiting">{full ? 'All seats filled. Start when ready.' : 'The host can start when all seats are filled.'}</p>
             </>
           ) : (
-            <p className="text-center text-xs text-mute">Only the host can start the match.</p>
+            <p className="waiting">Only the host can start the match.</p>
           )}
         </div>
       </main>
