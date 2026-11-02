@@ -36,6 +36,7 @@ const initialState = {
   status: 'IDLE', // IDLE | FOUND | STARTING | ACTIVE | ROUND_ENDED | ENDED | CANCELLED
   players: [],
   config: null, // { matchType, difficulty, playerCount }
+  rankedOpen: true, // false while the week rolls over (ranked.status); running matches still count
   queuePlayersWaiting: 1, // live count while in queue, from queue.progress (see Matchmaking.jsx)
   queuePlayers: [], // { userId, username, avatarUrl } of everyone currently in the forming group
   roundNumber: 0,
@@ -67,12 +68,18 @@ const initialState = {
   // mySkill and xray are this player's own and never carry anyone else's.
   skillLobby: null, // { order, activePickerId, secondsPerPick, skills, picks }
   skillLobbyEndsAt: null, // client clock time the current pick runs out
-  mySkill: null, // { skill, used, targetId }
+  mySkill: null, // { skill, used, pending, targetId }. used = spent (server confirmed); pending = activated, effect not happened yet
   xray: null, // { targetId, dead, feed: [{ guess, guessNumber, feedback }] }
   skillToast: null, // { id, text, kind, ms }
   frozenNotice: null, // { id } shown to the player whose turn was skipped by Freeze
 };
 
+
+const RETURN_MESSAGES = {
+  TURN_EXPIRED: 'Your turn ran out first, so the skill was not used. You can use it again.',
+  ROUND_ENDED: 'The round ended first, so the skill was not used. You can use it again.',
+  TARGET_FORFEITED: 'Your target left first, so the skill was not used. You can use it again.',
+};
 
 let toastCounter = 0;
 const toast = (text, kind = 'info', ms = 3500) => ({ id: (toastCounter += 1), text, kind, ms });
@@ -82,7 +89,8 @@ export const useMatchStore = create((set, get) => ({
 
   reset: () => {
     persistMatchId(null);
-    set(initialState);
+    // The ranked queue state belongs to the server, not to one match, so it survives a reset.
+    set({ ...initialState, rankedOpen: get().rankedOpen });
   },
 
   onMatchFound: (payload) => {
@@ -211,7 +219,7 @@ export const useMatchStore = create((set, get) => ({
       disconnectedPlayerIds: snapshot.disconnectedPlayerIds ?? [],
       skillLobby: snapshot.skillLobby ?? null,
       skillLobbyEndsAt: snapshot.skillLobby?.activePickerId ? Date.now() + (snapshot.skillLobby.secondsPerPick || 10) * 1000 : snapshot.skillLobby?.closesInMs ? Date.now() + snapshot.skillLobby.closesInMs : null,
-      mySkill: snapshot.mySkill ? { skill: snapshot.mySkill.skill, used: snapshot.mySkill.used, targetId: snapshot.mySkill.targetId } : state.mySkill,
+      mySkill: snapshot.mySkill ? { skill: snapshot.mySkill.skill, used: snapshot.mySkill.used, pending: Boolean(snapshot.mySkill.pending), targetId: snapshot.mySkill.targetId } : state.mySkill,
       xray: snapshot.mySkill?.xray ?? null,
       lastRejection: sameMoment ? state.lastRejection : null,
       inactivityWarning: sameMoment ? state.inactivityWarning : null,
@@ -226,7 +234,7 @@ export const useMatchStore = create((set, get) => ({
       skillLobbyEndsAt: payload.activePickerId ? Date.now() + payload.secondsPerPick * 1000 : payload.closesInMs ? Date.now() + payload.closesInMs : null,
     }),
   onSkillLobbyClosed: () => set({ skillLobby: null, skillLobbyEndsAt: null }),
-  onSkillAssigned: (payload) => set({ mySkill: { skill: payload.skill, used: false, targetId: null } }),
+  onSkillAssigned: (payload) => set({ mySkill: { skill: payload.skill, used: false, pending: false, targetId: null } }),
 
   // Private results only ever arrive on this player's own socket.
   onSkillResult: (payload) =>
@@ -235,20 +243,31 @@ export const useMatchStore = create((set, get) => ({
       switch (payload.skill) {
         case 'REVEAL_POSITION':
           // The pattern shows blanks for every unknown position, e.g. "___5". Five seconds, then gone.
-          return { mySkill: { ...mine, used: true }, skillToast: toast(payload.pattern, 'reveal', 5000) };
+          return { mySkill: { ...mine, used: true, pending: false }, skillToast: toast(payload.pattern, 'reveal', 5000) };
+        // Extra Turn and Freeze are only active here. The server spends them (skill.consumed) when
+        // the effect happens, or gives them back (skill.returned) when it never does.
         case 'EXTRA_TURN':
-          return { mySkill: { ...mine, used: true }, skillToast: toast('Extra guess ready. Guess again after this one.', 'info') };
+          return { mySkill: { ...mine, used: false, pending: true }, skillToast: toast('Extra guess ready. Guess again after this one.', 'info') };
         case 'FREEZE':
-          return { mySkill: { ...mine, used: true, targetId: payload.targetId }, skillToast: toast('Frozen. Their next turn is skipped.', 'info') };
+          return { mySkill: { ...mine, used: false, pending: true, targetId: payload.targetId }, skillToast: toast('Frozen. Their next turn is skipped.', 'info') };
         case 'XRAY_VISION':
           if (payload.status === 'DEAD') {
             return { xray: state.xray ? { ...state.xray, dead: true } : null, skillToast: toast('X-Ray lost. Your target left the round.', 'warn') };
           }
-          return { mySkill: { ...mine, used: true, targetId: payload.targetId }, xray: { targetId: payload.targetId, dead: false, feed: [] }, skillToast: toast('X-Ray on. You see their next guesses.', 'info') };
+          return { mySkill: { ...mine, used: true, pending: false, targetId: payload.targetId }, xray: { targetId: payload.targetId, dead: false, feed: [] }, skillToast: toast('X-Ray on. You see their next guesses.', 'info') };
         default:
           return {};
       }
     }),
+  // The effect happened: the skill is spent.
+  onSkillConsumed: (payload) =>
+    set((state) => (state.mySkill ? { mySkill: { ...state.mySkill, skill: payload.skill ?? state.mySkill.skill, used: true, pending: false } } : {})),
+  // The effect never happened: the skill is usable again, and the player is told why.
+  onSkillReturned: (payload) =>
+    set((state) => ({
+      mySkill: state.mySkill ? { ...state.mySkill, skill: payload.skill ?? state.mySkill.skill, used: false, pending: false, targetId: null } : state.mySkill,
+      skillToast: toast(RETURN_MESSAGES[payload.reason] || 'Your skill was not used. You can use it again.', 'info', 5000),
+    })),
   onSkillXray: (entry) =>
     set((state) => ({
       xray: state.xray ? { ...state.xray, feed: [...state.xray.feed, { guess: entry.guess, guessNumber: entry.guessNumber, feedback: entry.feedback }] } : state.xray,

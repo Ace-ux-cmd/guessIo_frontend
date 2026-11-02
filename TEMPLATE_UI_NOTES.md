@@ -20,4 +20,5 @@ Guest "Play solo" and "Pass and play", Friends, Daily Challenge, Help, skills, p
 - Forfeit, keypad and action buttons are at least 44px tall.
 - Results screen for non-victory outcomes reuses the victory layout with a red, cyan or amber accent.
 - Friends and Friend search have no template page; they are built from the rank, matches and settings parts.
-- Login, Onboarding, Daily, Support and the shared sheets were not restyled.
+- Login and Onboarding share a roomier auth layout, and the login demo shows ten guesses with the final code solved on the tenth row.
+- Daily, Support and the shared sheets keep their own content layouts while using the shared compact scale and blue headings.

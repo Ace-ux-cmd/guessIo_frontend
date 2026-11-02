@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import RequireAuth from './components/RequireAuth';
 import RouteErrorBoundary from './components/ErrorBoundary';
 import AchievementUnlockedPrompt from './components/achievements/AchievementUnlockedPrompt';
+import InvitePrompt from './components/social/InvitePrompt';
 import Splash from './screens/Splash';
 import { PageSkeleton } from './components/ui/Feedback';
 import { useAuthStore } from './stores/authStore';
@@ -266,6 +267,7 @@ export default function App() {
         </Routes>
         </Suspense>
         <AchievementUnlockedPrompt />
+        <InvitePrompt />
       </AppBoot>
       </RouteErrorBoundary>
     </BrowserRouter>

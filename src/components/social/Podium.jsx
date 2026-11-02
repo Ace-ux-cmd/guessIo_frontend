@@ -19,19 +19,15 @@ export default function Podium({ items, unit = 'rating', onSelect }) {
         const item = items[index];
         const first = index === 0;
         if (!item) return <div key={index} role="presentation" className="player" />;
-        const initial = (item.username || '?').charAt(0).toUpperCase();
+        const ringColor = first ? '#FFBA37' : index === 2 ? '#9C4DFF' : '#00E5FF';
         return (
           <article key={index} role="listitem" className="player">
             {first && <span className="crown" aria-label="First place">&#9819;</span>}
-            <div className="portrait" aria-label={`${item.username}'s avatar`}>
-              {item.avatarUrl ? (
-                <Avatar name={item.username} url={item.avatarUrl} size={first ? 80 : 62} />
-              ) : (
-                initial
-              )}
+            <div className="portrait">
+              <Avatar name={item.username} url={item.avatarUrl} size={first ? 80 : 62} ringColor={ringColor} />
             </div>
-            {onSelect ? (
-              <button type="button" onClick={() => onSelect(item)} className="player-name" style={{ background: 'transparent', textAlign: 'center', textDecoration: 'underline', textUnderlineOffset: '3px' }}>{item.username}</button>
+            {onSelect && !item.isBot ? (
+              <button type="button" onClick={() => onSelect(item)} className="player-name player-name-btn" style={{ background: 'transparent', textAlign: 'center', textDecoration: 'underline', textUnderlineOffset: '3px' }}>{item.username}</button>
             ) : (
               <strong className="player-name">{item.username}</strong>
             )}

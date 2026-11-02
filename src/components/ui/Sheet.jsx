@@ -23,6 +23,33 @@ export default function Sheet({ open, onClose, title, children, locked = false, 
     return () => document.removeEventListener('keydown', onKey);
   }, [open, locked, onClose]);
 
+  // Keep the page behind a sheet anchored at its current scroll position.
+  // The panel itself remains scrollable, so long dialogs can be read without
+  // the underlying page shifting when the user swipes.
+  useEffect(() => {
+    if (!open || !mounted) return undefined;
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const previous = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+    };
+    body.style.position = 'fixed';
+    body.style.top = `-${scrollY}px`;
+    body.style.left = '0';
+    body.style.right = '0';
+    body.style.width = '100%';
+    body.style.overflow = 'hidden';
+    return () => {
+      Object.assign(body.style, previous);
+      window.scrollTo(0, scrollY);
+    };
+  }, [open, mounted]);
+
   useEffect(() => {
     const overlay = overlayRef.current;
     if (!open || !mounted || !overlay) return undefined;

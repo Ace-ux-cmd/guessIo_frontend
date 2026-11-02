@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import BottomNav from '../../components/ui/BottomNav';
+import Avatar from '../../components/ui/Avatar';
 import Icon from '../../components/ui/Icon';
-import { ICONS } from '../../components/ui/icons';
+import { AchievementMark } from '../../components/achievements/AchievementBadge';
 import { BlockConfirm, ReportSheet } from '../../components/social/PlayerSheet';
 import { PageSkeleton, ErrorState } from '../../components/ui/Feedback';
 import * as profileApi from '../../api/profile.api';
@@ -11,6 +11,11 @@ import * as friendsApi from '../../api/friends.api';
 import { getErrorMessage } from '../../api/client';
 import { useAuthStore } from '../../stores/authStore';
 import { useFeatures } from '../../hooks/useFeatures';
+
+function formatJoined(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+}
 
 /**
  * Another player's read-only profile. A blocked or unknown player is "not
@@ -57,7 +62,7 @@ export default function PlayerProfile() {
 
   const shell = (children) => (
     <>
-      <main className="app">
+      <main className="app public-player">
         <header className="topbar with-back leading">
           <Link to={backTo} replace aria-label="Back" className="back">&larr;</Link>
           <div>
@@ -67,25 +72,24 @@ export default function PlayerProfile() {
         </header>
         {children}
       </main>
-      {signedIn && <BottomNav active={backTo === '/dashboard' ? '/dashboard' : backTo.startsWith('/friends') ? '/profile' : '/leaderboards'} />}
     </>
   );
 
-  if (isLoading) return (<><PageSkeleton cards={3} />{signedIn && <BottomNav active="/leaderboards" />}</>);
+  if (isLoading) return <PageSkeleton cards={3} />;
   const status = error?.response?.status;
   const code = error?.response?.data?.error?.code;
   if (isError && code === 'PROFILE_PRIVATE') {
     return shell(
       <div className="content">
-        <section className="status-card" style={{ borderColor: 'rgba(156, 77, 255, 0.4)' }}>
-          <h2 style={{ margin: 0, fontSize: '1.1rem' }}>This profile is private</h2>
-          <p className="summary">{username} has turned off profile visibility.</p>
+        <section className="status-card compact" style={{ borderColor: 'rgba(156, 77, 255, 0.4)' }}>
+          <h2 style={{ margin: 0 }}>This profile is private</h2>
+          <p className="summary">{username}&apos;s profile is not available for viewing.</p>
         </section>
       </div>
     );
   }
   if (isError && status === 404) {
-    return shell(<div className="content"><section className="status-card"><h2 style={{ margin: 0, fontSize: '1.1rem' }}>Player not found</h2><p className="summary">That player does not exist or cannot be shown.</p></section></div>);
+    return shell(<div className="content"><section className="status-card compact"><h2 style={{ margin: 0 }}>Player not found</h2><p className="summary">That player does not exist or cannot be shown.</p></section></div>);
   }
   if (isError || !p) return shell(<div className="content"><ErrorState description="Could not load this profile." /></div>);
 
@@ -94,14 +98,13 @@ export default function PlayerProfile() {
   const achievements = (p.achievements || []).filter((a) => a.unlocked);
   const rel = p.relationship;
 
-  let action = null;
-  if (signedIn && friends && !isSelf && rel) {
-    const busy = relate.isPending;
-    if (rel === 'FRIENDS') action = <button type="button" className="profile-cta" disabled={busy} onClick={() => relate.mutate({ kind: 'remove' })}>Friends</button>;
-    else if (rel === 'REQUEST_SENT') action = <button type="button" className="profile-cta" disabled={busy} onClick={() => relate.mutate({ kind: 'cancel' })}>Sent</button>;
-    else if (rel === 'REQUEST_RECEIVED') action = <button type="button" className="profile-cta primary" disabled={busy} onClick={() => relate.mutate({ kind: 'accept' })}>Accept</button>;
-    else action = <button type="button" className="profile-cta primary" disabled={busy || !p.canRequest} onClick={() => relate.mutate({ kind: 'add' })}>{p.canRequest ? 'Add friend' : 'Unavailable'}</button>;
-  }
+  const showFriendAction = signedIn && friends && !isSelf && Boolean(rel);
+  const friendSent = rel === 'REQUEST_SENT' || rel === 'FRIENDS';
+  const friendCanAccept = rel === 'REQUEST_RECEIVED';
+  const friendLabel = friendSent ? (rel === 'FRIENDS' ? `You are friends with ${name}` : `Friend request sent to ${name}`)
+    : friendCanAccept ? `Accept friend request from ${name}`
+      : p.canRequest ? `Send friend request to ${name}` : `Friend requests unavailable for ${name}`;
+  const rankTone = p.rank === 1 ? 'gold' : p.rank === 2 ? 'silver' : p.rank === 3 ? 'bronze' : 'default';
 
   const stats = p.statistics;
   const played = stats?.matchesPlayed ?? 0;
@@ -109,28 +112,47 @@ export default function PlayerProfile() {
   const lost = stats?.matchesLost ?? 0;
   const drawn = stats?.matchesDrawn ?? 0;
   const winRate = played ? Math.round((won / played) * 100) : null;
+  const joined = formatJoined(p.createdAt);
 
   return shell(
     <>
       <header className="profile-header">
-        <div
+        <Avatar
+          name={name}
+          url={p.avatarUrl}
+          size={90}
           className="profile-avatar"
-          role="img"
-          aria-label={`${name} avatar`}
-          style={p.avatarUrl ? { backgroundImage: `url(${p.avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-        >
-          {!p.avatarUrl && (name || '?').charAt(0).toUpperCase()}
+          ringColor="#00E5FF"
+          style={{ borderColor: 'var(--cyan)', ...(!p.avatarUrl ? { background: 'radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%)' } : {}) }}
+        />
+        <div className="name-row player-profile-name-row">
+          <div className="player-name-anchor">
+            <h2 className="profile-variant">{name}</h2>
+            {showFriendAction && (
+              <button
+                type="button"
+                className={`player-friend-action${friendSent ? ' sent' : ''}`}
+                aria-label={friendLabel}
+                title={friendLabel}
+                disabled={relate.isPending || friendSent || (!friendCanAccept && !p.canRequest)}
+                onClick={() => relate.mutate({ kind: friendCanAccept ? 'accept' : 'add' })}
+              >
+                {friendSent ? <Icon name="check" className="h-4 w-4" /> : <span className="friend-plus-mark"><Icon name="friends" className="h-4 w-4" /><Icon name="plus" className="h-3 w-3" /></span>}
+              </button>
+            )}
+          </div>
         </div>
-        <div className="name-row"><h2 className="profile-variant">{name}</h2></div>
-        <p className="handle">@{p.username}</p>
-        {action && <div style={{ marginTop: '0.7rem' }}>{action}</div>}
+        <p className="handle">@{p.username}{joined ? ` · Joined ${joined}` : ''}</p>
+        {Number.isFinite(p.rank) && (
+          <span className={`top-ten ${rankTone}`}>Rank #{p.rank} on the leaderboard</span>
+        )}
         {actionError && <p role="alert" className="setting-error">{actionError}</p>}
       </header>
 
       <section className="stats profile-variant" aria-label="Player totals">
         <div className="stat profile-variant"><strong className="tnum">{(p.rating ?? 0).toLocaleString()}</strong><span>Rating</span></div>
         <div className="stat profile-variant"><strong className="tnum">{(p.points ?? 0).toLocaleString()}</strong><span>Points</span></div>
-        <div className="stat profile-variant"><strong className="tnum">{winRate !== null ? `${winRate}%` : '-'}</strong><span>Win rate</span><small>{won} {won === 1 ? 'win' : 'wins'}</small></div>
+        <div className="stat profile-variant"><strong className="tnum">{winRate !== null ? `${winRate}%` : '-'}</strong><span>Win rate</span></div>
         <div className="stat profile-variant"><strong className="tnum">{played.toLocaleString()}</strong><span>Matches</span></div>
       </section>
 
@@ -150,12 +172,12 @@ export default function PlayerProfile() {
             <div className="achievement-list profile-variant">
               {achievements.map((a) => (
                 <article key={a.key} className="achievement profile-variant">
-                  <span className="badge profile-variant" aria-hidden="true"><Icon name={ICONS[a.icon] ? a.icon : 'star'} className="h-4 w-4" /></span>
+                  <span className="badge profile-variant" aria-hidden="true"><AchievementMark achievementKey={a.key} icon={a.icon} className="h-5 w-5" /></span>
                   <div><strong>{a.title}</strong><span>{a.description}</span></div>
                 </article>
               ))}
             </div>
-          ) : <p className="helper">No achievements unlocked yet.</p>}
+          ) : <p className="achievement-empty">No achievements unlocked yet.</p>}
         </section>
 
         {(signedIn && !isSelf && safety) && (

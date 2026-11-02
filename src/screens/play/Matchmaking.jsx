@@ -8,7 +8,10 @@ import { useMatchSocket } from '../../hooks/useMatchSocket';
 import { useReconnectGate } from '../../hooks/useReconnectGate';
 import { useMatchStore } from '../../stores/matchStore';
 import { useAuthStore } from '../../stores/authStore';
+import Avatar from '../../components/ui/Avatar';
 import { matchTypeLabel } from '../../lib/format';
+import { useRankedStatus, useRankedOpenCheck } from '../../hooks/useRankedStatus';
+import RankedClosedDialog from '../../components/ui/RankedClosedDialog';
 
 function formatElapsed(seconds) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
@@ -27,6 +30,10 @@ export default function Matchmaking() {
   const matchId = useMatchStore((s) => s.matchId);
   const rejection = useMatchStore((s) => s.lastRejection);
   const user = useAuthStore((s) => s.user);
+  const { rankedOpen } = useRankedStatus();
+  const checkRankedOpen = useRankedOpenCheck();
+  // Ranked was found shut before the queue was joined, so nothing was joined at all.
+  const [blocked, setBlocked] = useState(false);
   const matchInProgress = Boolean(matchId) && ['FOUND', 'STARTING', 'ACTIVE', 'ROUND_ENDED'].includes(status);
 
   const matchType = params.get('matchType');
@@ -60,10 +67,21 @@ export default function Matchmaking() {
     navigate(`${location.pathname}${location.search}`, { replace: true, state: { queueIntent: false } });
     // Reset to 1 (just me) before joining, in case a previous queue attempt
     // in this session left a stale count in the store.
-    joinedRef.current = true;
-    joinQueue();
+    let cancelled = false;
+    const start = () => {
+      if (cancelled) return;
+      joinedRef.current = true;
+      joinQueue();
+    };
+    // Ranked asks the server first: a screen opened before the weekly lock must not queue.
+    if (matchType === 'RANKED') {
+      checkRankedOpen().then((open) => (open ? start() : !cancelled && setBlocked(true)));
+    } else {
+      start();
+    }
     const interval = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => {
+      cancelled = true;
       clearInterval(interval);
       // statusRef, not status: the closure above would still hold the status from the
       // first render and always ask to leave, even right after a match was found.
@@ -123,6 +141,8 @@ export default function Matchmaking() {
   const joined = Math.min(playersWaiting || 1, playerCount || 1);
   const open = Math.max(0, (playerCount || 1) - joined);
   const found = status === 'FOUND';
+  // The server removed this search because the week is rolling over. Nothing is searching any more.
+  const closed = blocked || rejection?.code === 'RANKED_CLOSED' || (matchType === 'RANKED' && !rankedOpen && !found);
   const myName = user?.displayName || user?.username || 'You';
 
   // Nothing to show while the redirect above runs.
@@ -148,8 +168,8 @@ export default function Matchmaking() {
         <div className="content matchmaking-variant">
           <section className="queue-hero" aria-live="polite">
             <div className="signal" aria-hidden="true">&#x2301;</div>
-            <h1>{found ? 'Match found' : 'Finding opponents'}</h1>
-            <p role="status">{open ? `Waiting for ${open} more player${open > 1 ? 's' : ''}` : 'Everyone is in'}</p>
+            <h1>{found ? 'Match found' : closed ? 'Ranked is closed' : 'Finding opponents'}</h1>
+            <p role="status">{closed ? 'The week is closing. Ranked matches reopen in a few minutes.' : open ? `Waiting for ${open} more player${open > 1 ? 's' : ''}` : 'Everyone is in'}</p>
             <div className="setup-summary matchmaking-variant">
               <span className="chip">{matchTypeLabel(matchType)}</span>
               <span className="chip">{playerCount} players</span>
@@ -157,7 +177,7 @@ export default function Matchmaking() {
             </div>
           </section>
 
-          {rejection && <div className="mt-4"><Banner variant="error">{rejection.message}</Banner></div>}
+          {rejection && rejection.code !== 'RANKED_CLOSED' && <div className="mt-4"><Banner variant="error">{rejection.message}</Banner></div>}
 
           <section className="section" aria-labelledby="players-title">
             <div className="section-heading">
@@ -168,10 +188,10 @@ export default function Matchmaking() {
               {seats.map((seat, i) => {
                 const searching = seat.state === 'searching';
                 const name = seat.state === 'me' ? myName : seat.player?.username || 'Searching...';
-                const initial = searching ? '?' : (name || '?').charAt(0).toUpperCase();
+                const avatarPlayer = seat.state === 'me' ? user : seat.player;
                 return (
                   <article key={i} className={`player matchmaking-variant${seat.state === 'me' ? ' you' : ''}`}>
-                    <span className="avatar">{initial}</span>
+                    <Avatar name={name} url={avatarPlayer?.avatarUrl} size={35} className="avatar" />
                     <div className="player-info">
                       <strong>{name}</strong>
                       <span>{seat.state === 'me' ? 'You · Ready' : searching ? 'Open seat' : 'Ready to crack'}</span>
@@ -187,11 +207,12 @@ export default function Matchmaking() {
             <p className="font-display text-3xl font-bold tnum">{formatElapsed(elapsed)}</p>
           </div>
 
-          <button type="button" onClick={cancel} className="cancel">Cancel search</button>
+          <button type="button" onClick={cancel} className="cancel">{closed ? 'Back to match setup' : 'Cancel search'}</button>
         </div>
       </main>
       <ReconnectModal open={reconnectGate.exhausted} onRetry={reconnectGate.retry} />
       <ActiveMatchDialog open={Boolean(staleMatchId)} onResume={resumeStaleMatch} onAbandon={abandonStaleMatch} />
+      <RankedClosedDialog open={closed && !found} onClose={() => navigate('/play', { replace: true })} closeLabel="Back to Play" />
     </>
   );
 }

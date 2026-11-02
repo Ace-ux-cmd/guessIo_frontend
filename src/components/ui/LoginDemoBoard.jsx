@@ -212,7 +212,7 @@ export default function LoginDemoBoard() {
 
   return (
     <div className="card a-g w-full overflow-hidden" aria-hidden="true">
-      <div className="flex items-center justify-between px-4 pt-3 text-[11px] font-semibold">
+      <div className="flex items-center justify-between px-4 pt-3 text-[0.7333rem] font-semibold">
         <span className="inline-flex items-center gap-2 text-g">
           <span className="h-2 w-2 animate-pulse rounded-full bg-g" />
           Live simulation
@@ -220,13 +220,13 @@ export default function LoginDemoBoard() {
         <span className="text-mute tnum">Guess {guessCount}/{GUESS_LIMIT}</span>
       </div>
 
-      <div className="relative h-[clamp(150px,26dvh,292px)]">
+      <div className="relative login-demo-stage">
         <div
           className={`absolute inset-x-0 top-0 bottom-9 flex flex-col justify-end gap-1.5 px-4 pt-3 overflow-hidden transition-opacity duration-300 ${boardFading ? "opacity-0" : "opacity-100"}`}
         >
           {rows.map((row) => (
             <div className="flex items-center gap-3 animate-rise shrink-0" key={row.guessNum}>
-              <div className="w-6 shrink-0 text-center text-[11px] text-mute tnum">#{row.guessNum}</div>
+              <div className="w-6 shrink-0 text-center text-[0.7333rem] text-mute tnum">#{row.guessNum}</div>
               <div className="flex gap-1.5">
                 {row.cells.map((cell, i) => (
                   <Tile
@@ -256,7 +256,7 @@ export default function LoginDemoBoard() {
           )}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center border-t-2 border-line text-[11px] font-bold text-mute">
+        <div className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center border-t-2 border-line text-[0.7333rem] font-bold text-mute">
           {scanStatus}
         </div>
       </div>

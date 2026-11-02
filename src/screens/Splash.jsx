@@ -60,7 +60,7 @@ export default function Splash({ status = 'Initializing…' }) {
 
         <div className="login-bottomline">
           <span>Multiplayer code-breaking arena</span>
-          <span>guessIo // <strong>Ace Realm</strong></span>
+          <span>guessIo // <strong>V2.0.0</strong></span>
         </div>
       </main>
     </div>

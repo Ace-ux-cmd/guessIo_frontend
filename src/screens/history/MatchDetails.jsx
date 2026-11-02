@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { PageSkeleton, ErrorState } from '../../components/ui/Feedback';
+import Avatar from '../../components/ui/Avatar';
 import * as matchesApi from '../../api/matches.api';
 import { useAuthStore } from '../../stores/authStore';
 import { matchTypeLabel, signed } from '../../lib/format';
@@ -12,11 +13,11 @@ function formatClock(seconds) {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
-const initialOf = (name) => (name || '?').charAt(0).toUpperCase();
-
 export default function MatchDetails() {
   const { id } = useParams();
+  const location = useLocation();
   const user = useAuthStore((s) => s.user);
+  const backTo = ['/history', '/dashboard', '/results'].includes(location.state?.from) ? location.state.from : '/history';
 
   const { data: match, isLoading, isError } = useQuery({
     queryKey: ['match', id],
@@ -26,7 +27,7 @@ export default function MatchDetails() {
   const shell = (children) => (
     <main className="app">
       <header className="topbar with-back leading">
-        <Link to="/history" replace aria-label="Back" className="back">&larr;</Link>
+        <Link to={backTo} replace aria-label="Back" className="back">&larr;</Link>
         <div>
           <h1 className="sr-only">Match details</h1>
           <p className="eyebrow">Match details</p>
@@ -71,9 +72,7 @@ export default function MatchDetails() {
             const winner = p.userId === match.winnerId;
             return (
               <article key={p.userId} className={`player match-details-variant${isMe ? ' you' : ''}`}>
-                <span className="avatar match-details-variant mini-avatar" role="img" aria-label={`${p.username} avatar`} style={p.avatarUrl ? { backgroundImage: `url(${p.avatarUrl})`, backgroundSize: 'cover' } : undefined}>
-                  {!p.avatarUrl && initialOf(p.username)}
-                </span>
+                <Avatar name={p.username} url={p.avatarUrl} size={32} className="avatar match-details-variant mini-avatar" />
                 <span>
                   <span className="player-name match-details-variant">{isMe ? `${p.username} (you)` : p.username}</span>
                   <span className="player-detail">{winner ? 'Match winner' : isMe ? 'You' : 'Opponent'}</span>

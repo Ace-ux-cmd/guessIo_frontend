@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
 import Button from '../../components/ui/Button';
@@ -107,22 +107,38 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlayerId, round?.roundNumber]);
 
+  // The match is over and the final round's result has been dismissed. From
+  // this point nothing but the results screen may be painted (see the guard
+  // below), so the board never flashes between the two.
+  const leavingToResults = match.status === 'COMPLETED' && !pendingRoundAdvance;
+
+  const goToResults = useCallback(() => {
+    const p1 = match.players[0];
+    const p2 = match.players[1];
+    const winner = match.players.find((p) => p.id === match.winnerId);
+    const params = new URLSearchParams({
+      winnerId: match.winnerId || '',
+      winnerName: winner?.name || '',
+      mode,
+      rounds: String(match.rounds.length),
+      score: `${p1.roundsWon}-${p2.roundsWon}`,
+    });
+    navigate(`/results/guest?${params.toString()}`, { replace: true });
+  }, [match, mode, navigate]);
+
+  // Safety net for any path that reaches the completed state without the
+  // Continue button (the button itself navigates immediately).
   useEffect(() => {
-    // Only leave once the final round's result pause has been dismissed.
-    if (match.status === 'COMPLETED' && !pendingRoundAdvance) {
-      const p1 = match.players[0];
-      const p2 = match.players[1];
-      const winner = match.players.find((p) => p.id === match.winnerId);
-      const params = new URLSearchParams({
-        winnerId: match.winnerId || '',
-        winnerName: winner?.name || '',
-        mode,
-        rounds: String(match.rounds.length),
-        score: `${p1.roundsWon}-${p2.roundsWon}`,
-      });
-      navigate(`/results/guest?${params.toString()}`, { replace: true });
-    }
-  }, [match.status, match.winnerId, match.players, match.rounds.length, mode, navigate, pendingRoundAdvance]);
+    if (leavingToResults) goToResults();
+  }, [leavingToResults, goToResults]);
+
+  // Continue on the round result. For the last round this goes straight to the
+  // match results instead of waiting for a render of the live board first.
+  function handleRoundContinue() {
+    const matchOver = match.status === 'COMPLETED';
+    advanceToNextRound();
+    if (matchOver) goToResults();
+  }
 
   const players = useMemo(
     () => match.players.map((p) => ({ userId: p.id, username: names[p.id] || p.name })),
@@ -132,6 +148,8 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
   const score = Object.fromEntries(match.players.map((p) => [p.id, p.roundsWon]));
 
   if (!round) return null;
+  // Same guard as online Gameplay: never paint the live board while the route changes.
+  if (leavingToResults) return null;
 
   const codeLength = round.codeLength;
   const isMyTurn = !isPassAndPlay ? activePlayerId === humanId : true; // pass & play: whoever holds it
@@ -182,7 +200,7 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
     return (
       <main className="app">
         <p className="practice-note">Practice match. Progress is not saved.</p>
-        <RoundResult result={roundResult} players={players} myUserId={humanId} onCountdownComplete={advanceToNextRound} manualAdvance />
+        <RoundResult result={roundResult} players={players} myUserId={humanId} onCountdownComplete={handleRoundContinue} manualAdvance />
       </main>
     );
   }

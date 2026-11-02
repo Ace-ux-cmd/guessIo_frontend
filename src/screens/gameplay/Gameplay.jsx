@@ -147,7 +147,7 @@ export default function Gameplay() {
   }
 
   // Before the countdown, a match that has skills runs the turn-based pick.
-  if (store.status === 'FOUND' && store.config?.skills) {
+  if (store.status === 'FOUND' && store.config?.skills && store.config?.matchType !== 'PRIVATE') {
     return (
       <>
         <SkillLobby matchId={store.matchId} myUserId={user?.id} />
@@ -238,6 +238,7 @@ export default function Gameplay() {
 
         {(store.inactivityWarning || store.lastRejection) && (
           <div className="px-4 mt-2 space-y-2">
+            {store.config?.matchType === 'RANKED' && !store.rankedOpen && <Banner variant="info">The week is closing. This match still counts toward this week.</Banner>}
             {store.inactivityWarning && <Banner variant="warn">{store.inactivityWarning}</Banner>}
             {store.lastRejection && <Banner variant="error">{store.lastRejection.message}</Banner>}
           </div>

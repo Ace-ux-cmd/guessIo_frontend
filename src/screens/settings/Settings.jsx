@@ -190,14 +190,14 @@ export default function Settings() {
 
         <div className="content">
           <section className="profile-card" aria-label="Account profile">
-            <div
+            <Avatar
+              name={name}
+              url={user.avatarUrl}
+              size={43}
               className="settings-avatar"
-              role="img"
-              aria-label={`${name} avatar`}
-              style={user.avatarUrl ? { backgroundImage: `url(${user.avatarUrl})` } : undefined}
-            >
-              {!user.avatarUrl && (name || '?').charAt(0).toUpperCase()}
-            </div>
+              ringColor="#00E5FF"
+              style={{ borderColor: 'var(--cyan)', ...(!user.avatarUrl ? { background: '#183254' } : {}) }}
+            />
             <div className="profile-copy">
               <strong>{name}</strong>
               <span>{user.email || `@${user.username}`}</span>

@@ -66,7 +66,7 @@ export default function AchievementUnlockedPrompt() {
       <ul className="mt-3 space-y-2.5 overflow-y-auto" style={{ maxHeight: '40vh' }}>
         {pending.map((achievement) => (
           <li key={achievement.key} className="card a-g flex items-center gap-3 p-3">
-            <AchievementBadge icon={achievement.icon} unlocked />
+            <AchievementBadge achievementKey={achievement.key} icon={achievement.icon} unlocked />
             <div className="flex-1 min-w-0">
               <div className="font-semibold">{achievement.title}</div>
               <div className="text-sm text-mute">{achievement.description}</div>

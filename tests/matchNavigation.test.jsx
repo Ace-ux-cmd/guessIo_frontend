@@ -1,5 +1,6 @@
-import { render, screen, cleanup, act, fireEvent } from '@testing-library/react';
+import { render, screen, cleanup, act, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route, useLocation, useNavigationType } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // A tiny socket: handlers registered with on() can be fired from a test with fire().
@@ -19,6 +20,9 @@ vi.mock('../src/sockets/socketClient', () => ({
   retryConnection: vi.fn(),
 }));
 
+const weeklyStatus = vi.hoisted(() => vi.fn());
+vi.mock('../src/api/leaderboards.api', () => ({ getWeeklyStatus: (...a) => weeklyStatus(...a) }));
+
 import Matchmaking from '../src/screens/play/Matchmaking';
 import { useMatchSocket } from '../src/hooks/useMatchSocket';
 import { useMatchStore } from '../src/stores/matchStore';
@@ -33,6 +37,7 @@ function Probe() {
 }
 function renderAt(entry) {
   return render(
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
     <MemoryRouter initialEntries={[entry]}>
       <Routes>
         <Route path="/matchmaking" element={<Matchmaking />} />
@@ -41,22 +46,50 @@ function renderAt(entry) {
         <Route path="*" element={null} />
       </Routes>
       <Probe />
-    </MemoryRouter>,
+    </MemoryRouter>
+    </QueryClientProvider>,
   );
 }
 
 beforeEach(() => {
   handlers.clear();
   emitMock.mockClear();
+  weeklyStatus.mockReset();
+  weeklyStatus.mockResolvedValue({ rankedOpen: true, state: 'OPEN' });
   useAuthStore.setState({ user: { id: 'me', username: 'Ace' } });
 });
 afterEach(() => { cleanup(); useMatchStore.getState().reset(); });
 
-describe('matchmaking can only be entered on purpose', () => {
-  it('joins the queue once when the player tapped Start', () => {
+describe('ranked while the week is resetting', () => {
+  it('does not join the queue, and blocks with a dialog the player must leave through', async () => {
+    weeklyStatus.mockResolvedValue({ rankedOpen: false, state: 'CLOSING' });
     renderAt({ pathname: '/matchmaking', search: QS, state: { queueIntent: true } });
+    const back = await screen.findByRole('button', { name: 'Back to Play' });
+    expect(emitMock.mock.calls.filter(([e]) => e === 'queue.join')).toHaveLength(0);
+    fireEvent.click(back);
+    expect(await screen.findByText('play screen')).toBeTruthy();
+    expect(emitMock.mock.calls.filter(([e]) => e === 'queue.join')).toHaveLength(0);
+  });
+
+  it('casual matches are never held up by the ranked check', async () => {
+    weeklyStatus.mockResolvedValue({ rankedOpen: false, state: 'CLOSING' });
+    renderAt({ pathname: '/matchmaking', search: '?matchType=CASUAL&difficulty=STANDARD&playerCount=2', state: { queueIntent: true } });
+    await waitFor(() => expect(emitMock.mock.calls.filter(([e]) => e === 'queue.join')).toHaveLength(1));
+    expect(weeklyStatus).not.toHaveBeenCalled();
+  });
+
+  it('still joins if the status cannot be read, because the server enforces the lock', async () => {
+    weeklyStatus.mockRejectedValue(new Error('offline'));
+    renderAt({ pathname: '/matchmaking', search: QS, state: { queueIntent: true } });
+    await waitFor(() => expect(emitMock.mock.calls.filter(([e]) => e === 'queue.join')).toHaveLength(1));
+  });
+});
+
+describe('matchmaking can only be entered on purpose', () => {
+  it('joins the queue once when the player tapped Start', async () => {
+    renderAt({ pathname: '/matchmaking', search: QS, state: { queueIntent: true } });
+    await waitFor(() => expect(emitMock.mock.calls.filter(([e]) => e === 'queue.join')).toHaveLength(1));
     const joins = emitMock.mock.calls.filter(([e]) => e === 'queue.join');
-    expect(joins).toHaveLength(1);
     expect(joins[0][1]).toEqual({ matchType: 'RANKED', difficulty: 'STANDARD', playerCount: 2 });
     expect(screen.getByText('Finding opponents')).toBeTruthy();
   });
@@ -106,7 +139,7 @@ describe('matchmaking can only be entered on purpose', () => {
 
 describe('stale events from another match are ignored', () => {
   function Host() { useMatchSocket(); return null; }
-  const mount = () => render(<MemoryRouter><Host /></MemoryRouter>);
+  const mount = () => render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><Host /></MemoryRouter></QueryClientProvider>);
 
   it('ignores a late match.ended for an old match after the store was reset', () => {
     mount();

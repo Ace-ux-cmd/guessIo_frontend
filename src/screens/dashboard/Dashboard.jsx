@@ -6,26 +6,24 @@ import ConnectionBanner from '../../components/ui/ConnectionBanner';
 import HowToPlayOverlay from '../../components/ui/HowToPlayOverlay';
 import ActiveMatchDialog from '../../components/ui/ActiveMatchDialog';
 import MatchRow from '../../components/ui/MatchRow';
+import Avatar from '../../components/ui/Avatar';
 import Podium from '../../components/social/Podium';
+import WeeklyRecap from '../../components/social/WeeklyRecap';
 import PlayerSheet from '../../components/social/PlayerSheet';
 import { WelcomeTip, SkillsIntro, useWelcomeState } from '../../components/ui/Welcome';
-import SurveyPrompt from '../../components/ui/SurveyPrompt';
 import { Banner, PageSkeleton, ErrorState } from '../../components/ui/Feedback';
 import Button from '../../components/ui/Button';
 import { useCurrentUser } from '../../hooks/useAuth';
-import { useFullSizeScreen } from '../../hooks/useFullSizeScreen';
 import { useMatches } from '../../hooks/useMatches';
 import { useActiveMatchCheck } from '../../hooks/useActiveMatchCheck';
 import { useFeatures } from '../../hooks/useFeatures';
 import { useAuthStore } from '../../stores/authStore';
 import * as leaderboardsApi from '../../api/leaderboards.api';
 import * as profileApi from '../../api/profile.api';
-import { getSurvey } from '../../api/survey.api';
 
 const LAST_GAMES = 3;
 
 export default function Dashboard() {
-  useFullSizeScreen();
   const [howToOpen, setHowToOpen] = useState(false);
   const [selected, setSelected] = useState(null);
   const consumeBackToLoginBlockedMessage = useAuthStore((s) => s.consumeBackToLoginBlockedMessage);
@@ -35,9 +33,8 @@ export default function Dashboard() {
   const { data: user, isLoading: userLoading, isError: userError } = useCurrentUser();
   const { data: matchesPage, isLoading: matchesLoading } = useMatches({ pageSize: LAST_GAMES });
   const activeMatch = useActiveMatchCheck();
-  const { daily, survey: surveyOn } = useFeatures();
+  const { daily } = useFeatures();
   const helpRef = useRef(null);
-  const { data: survey } = useQuery({ queryKey: ['survey'], queryFn: getSurvey, enabled: surveyOn, retry: 0, staleTime: 60_000 });
   const { data: board, isLoading: boardLoading } = useQuery({
     queryKey: ['leaderboard', 'rating'],
     queryFn: () => leaderboardsApi.getRatingLeaderboard(),
@@ -75,7 +72,6 @@ export default function Dashboard() {
   const won = stats?.matchesWon ?? 0;
   const winRate = played ? Math.round((won / played) * 100) : null;
   const name = profile?.displayName || user.username;
-  const initial = (user.username || '?').charAt(0).toUpperCase();
 
   return (
     <>
@@ -88,7 +84,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-1.5">
             <button ref={helpRef} type="button" onClick={() => setHowToOpen(true)} className="avatar" aria-label="How to play" style={{ width: '2rem', height: '2rem', fontSize: '0.8rem' }}>?</button>
             {daily && <Link to="/daily" replace className="avatar" style={{ width: 'auto', padding: '0 0.7rem', borderRadius: '0.6rem', fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Daily</Link>}
-            <Link to="/profile" replace className="avatar" aria-label="Open profile">{initial}</Link>
+            <Link to="/profile" replace className="home-profile-link" aria-label="Open profile">
+              <Avatar name={name || user.username} url={profile?.avatarUrl || user?.avatarUrl} size={34} />
+            </Link>
           </div>
         </header>
 
@@ -128,14 +126,14 @@ export default function Dashboard() {
               <Link to="/history" replace className="block py-2 text-center text-xs font-bold underline">See all</Link>
             </>
           ) : (
-            <p className="card p-3 text-[13px]">No games yet. Play one and it shows up here.</p>
+            <p className="card p-3 text-[0.8667rem]">No games yet. Play one and it shows up here.</p>
           )}
         </section>
       </main>
       <BottomNav variant="home-variant" />
       <WelcomeTip userId={user.id} anchorRef={helpRef} open={welcome.tip} onDone={welcome.closeTip} />
       <SkillsIntro open={welcome.intro} onDone={welcome.closeIntro} />
-      <SurveyPrompt survey={survey} canShow={!welcome.tip && !welcome.intro} />
+      <WeeklyRecap canShow={!welcome.tip && !welcome.intro} />
       {selected && <PlayerSheet player={selected} onClose={() => setSelected(null)} />}
       <HowToPlayOverlay open={howToOpen} onClose={() => setHowToOpen(false)} />
       <ActiveMatchDialog open={Boolean(activeMatch.matchId)} onResume={activeMatch.resume} onAbandon={activeMatch.abandon} />

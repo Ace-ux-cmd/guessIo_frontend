@@ -1,6 +1,6 @@
 {
-  "name": "guessIo",
-  "short_name": "guessIo",
+  "name": "GuessIo",
+  "short_name": "GuessIo",
   "description": "Analyse → Outsmart → Crack the Code",
   "start_url": "/",
   "display": "standalone",

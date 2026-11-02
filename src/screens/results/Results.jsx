@@ -86,7 +86,12 @@ export default function Results() {
   }
   const playAgain = () => leave('/play');
   const goHome = () => leave('/dashboard');
-  const viewDetails = () => leave(!store.matchId || isPrivate ? '/dashboard' : `/history/${store.matchId}`);
+  function viewDetails() {
+    if (!store.matchId || isPrivate) return leave('/dashboard');
+    // Keep the result in history and in the match store so Details can return
+    // here without briefly restoring the previous live-game route.
+    navigate(`/history/${store.matchId}`, { state: { from: '/results' } });
+  }
 
   if (noMatchToShow) return <Navigate to="/dashboard" replace />;
   if (leaving) return null;

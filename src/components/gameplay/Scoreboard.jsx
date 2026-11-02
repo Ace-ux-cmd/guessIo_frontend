@@ -1,3 +1,5 @@
+import Avatar from '../ui/Avatar';
+
 /** One card per player: initials, name, rounds won. The player on turn is highlighted. */
 export default function Scoreboard({ players, score, activePlayerId, disconnectedPlayerIds = [], activeNote = 'guessing', myUserId }) {
   return (
@@ -7,7 +9,7 @@ export default function Scoreboard({ players, score, activePlayerId, disconnecte
         const gone = disconnectedPlayerIds.includes(p.userId);
         return (
           <article key={p.userId} className={`score-card${on ? ' active' : ''}${gone ? ' away' : ''}`}>
-            <span className="score-avatar" aria-hidden="true">{(p.username || '?').slice(0, 2).toUpperCase()}</span>
+            <Avatar name={p.username} url={p.avatarUrl} size={24} className="score-avatar" active={on} />
             <span className="score-name">{p.username}{p.userId === myUserId ? ' (you)' : ''}</span>
             {gone && <span className="sr-only">disconnected</span>}
             {on && p.userId !== myUserId && <span className="sr-only">{activeNote}</span>}

@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useFeatures } from '../../hooks/useFeatures';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import BottomNav from '../../components/ui/BottomNav';
+import Avatar from '../../components/ui/Avatar';
 import Icon from '../../components/ui/Icon';
 import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { PageSkeleton, ErrorState, EmptyState, Banner } from '../../components/ui/Feedback';
@@ -9,10 +11,9 @@ import * as friendsApi from '../../api/friends.api';
 import { getErrorMessage } from '../../api/client';
 
 function Card({ person, children, onOpen }) {
-  const initial = (person.displayName || person.username || '?').charAt(0).toUpperCase();
   return (
     <li className="person-card">
-      <span className="mini-avatar" aria-hidden="true" style={person.avatarUrl ? { backgroundImage: `url(${person.avatarUrl})`, backgroundSize: 'cover' } : undefined}>{!person.avatarUrl && initial}</span>
+      <Avatar name={person.displayName || person.username} url={person.avatarUrl} size={34} className="mini-avatar" />
       <button type="button" onClick={onOpen} className="person-main">
         <strong>{person.displayName}</strong>
         <span className="tnum">@{person.username}{person.rating != null ? ` \u00b7 ${person.rating} rating` : ''}</span>
@@ -25,6 +26,7 @@ function Card({ person, children, onOpen }) {
 /** Friends and requests. Capped at 10 friends; the server enforces it on both sides. */
 export default function Friends() {
   const navigate = useNavigate();
+  const { friendInvites } = useFeatures();
   const queryClient = useQueryClient();
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') === 'requests' ? 'requests' : 'friends';
@@ -81,7 +83,15 @@ export default function Friends() {
             <ul className="person-list">
               {list.map((f) => (
                 <Card key={f.username} person={f} onOpen={() => open(f.username)}>
-                  <button type="button" className="select act primary" onClick={() => navigate('/private-room?difficulty=STANDARD&playerCount=2', { replace: true })}>Challenge</button>
+                  <button
+                    type="button"
+                    className="select act primary"
+                    onClick={() => navigate('/private-room?difficulty=STANDARD&playerCount=2', {
+                      replace: true,
+                      // The friend's id lets the server send them an in-game invite; without the feature it is only a room.
+                      state: friendInvites && f.userId ? { invite: { userId: f.userId, name: f.displayName } } : undefined,
+                    })}
+                  >Challenge</button>
                   <button type="button" className="select act icon" aria-label={`Remove ${f.displayName}`} onClick={() => setRemoving(f)}><Icon name="close" /></button>
                 </Card>
               ))}

@@ -1,5 +1,6 @@
 import { render, screen, cleanup, act } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fakeSocket = { connected: true, on: vi.fn(), off: vi.fn(), io: { on: vi.fn(), off: vi.fn() } };
@@ -32,12 +33,14 @@ function mount() {
   };
   const observer = new MutationObserver(record);
   const utils = render(
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
     <MemoryRouter initialEntries={['/gameplay']}>
       <Routes>
         <Route path="/gameplay" element={<Gameplay />} />
         <Route path="/results" element={<p>results screen</p>} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
+    </QueryClientProvider>,
   );
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   record();

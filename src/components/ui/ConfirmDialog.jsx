@@ -20,7 +20,7 @@ export default function ConfirmDialog({
     <Sheet open={open} onClose={onCancel} locked={locked} showClose={false} labelledBy="confirm-title" accent={t.accent}>
       {eyebrow && <div className={`text-xs font-bold uppercase tracking-wide ${t.label}`}>{eyebrow}</div>}
       <div id="confirm-title" className="font-display mt-0.5 text-2xl font-bold">{title}</div>
-      {body && <p className="mt-2 text-[13px] text-mute">{body}</p>}
+      {body && <p className="mt-2 text-[0.8667rem] text-mute">{body}</p>}
       {children}
       <div className="mt-5 flex gap-3">
         <button type="button" disabled={busy} onClick={onCancel} className="btn alt flex-1">{cancelLabel}</button>

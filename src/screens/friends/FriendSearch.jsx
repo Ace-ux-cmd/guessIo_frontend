@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import BottomNav from '../../components/ui/BottomNav';
+import Avatar from '../../components/ui/Avatar';
 import { LoadingScreen, ErrorState, Banner } from '../../components/ui/Feedback';
 import * as friendsApi from '../../api/friends.api';
 import { getErrorMessage } from '../../api/client';
@@ -88,7 +89,7 @@ export default function FriendSearch() {
                 const a = actionFor(item);
                 return (
                   <li key={item.username} className="person-card">
-                    <span className="mini-avatar" aria-hidden="true" style={item.avatarUrl ? { backgroundImage: `url(${item.avatarUrl})`, backgroundSize: 'cover' } : undefined}>{!item.avatarUrl && (item.displayName || '?').charAt(0).toUpperCase()}</span>
+                    <Avatar name={item.displayName || item.username} url={item.avatarUrl} size={34} className="mini-avatar" />
                     <button type="button" onClick={() => navigate(`/players/${encodeURIComponent(item.username)}`, { state: { from: '/friends/add' } })} className="person-main">
                       <strong>{item.displayName}</strong>
                       <span>@{item.username}</span>

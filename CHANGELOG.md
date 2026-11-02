@@ -2,6 +2,28 @@
 
 All notable changes to the guessIo frontend (web app) are documented in this file.
 
+## Unreleased
+
+Needs the backend `Unreleased` release (migration `008_weekly_leaderboard.sql`). The three new systems appear only when the backend reports `weeklyLeaderboard`, `forfeitSuspension` or `friendInvites` on in `GET /config/features`; each defaults to off here.
+
+### Weekly leaderboard
+- Rating board shows the week and a countdown to Monday 00:00 UTC, "N more ranked matches to appear" for a player below the minimum (no rank is shown), and bots as normal entries
+- Dashboard shows the weekly recap (top 3) once per closed week, marked seen on the server. Podium entries open the read-only profile only when allowed
+- Ranked buttons are disabled with a clear message while the week rolls over, and reopen when the server says so (`ranked.status`, with a polling fallback)
+
+### Friend challenge
+- Friends: Challenge opens a private room and invites that friend. The room shows the invite as sent with a countdown, declined, expired (Invite again) or not sent with the reason
+- A signed-in player sees a prompt for an invite on any screen except a match, a search or a room: Accept joins by code, Decline tells the server. Only the latest invite shows, and it disappears when it is withdrawn or runs out
+
+### Skills
+- A skill shows as pending until its effect happens, is marked used only then, and returns to available if the server returns it
+
+### Fixes
+- Countdown hook now reads correctly on the first render of a new target
+
+### Removed
+- The survey card and its API calls
+
 ## V2.0.0
 
 Needs backend V2.0.0 (migration `006_social_daily_skills_push.sql`). Every new system hides itself if the backend reports its feature flag off (`GET /config/features`).
@@ -72,7 +94,6 @@ Needs backend V2.0.0 (migration `006_social_daily_skills_push.sql`). Every new s
 
 ### Second round of changes
 - The skills introduction is now a pop-up overlay, and the welcome message for a new account is a small blue banner floating over the screen (no layout shift) that points at the help button. Every sheet and pop-up fades and slides in and out
-- Release survey pop-up after 5 finished games, once per account (web and mobile share the state through the backend)
 - The player menu shows Friends, Sent, Accept, Add friend or Unavailable, matching the relationship
 
 ### Other
@@ -152,3 +173,12 @@ Needs backend V2.0.0 (migration `006_social_daily_skills_push.sql`). Every new s
 ### Tech
 - React 18, Vite, react-router, zustand, react-query, socket.io-client, axios
 - Environment variables: `VITE_API_BASE_URL`, `VITE_WS_URL`, `VITE_SUPPORT_GOOGLE_FORM_URL`
+
+## Unreleased
+- Guest home opens on the leaderboard sign-in block; solo and pass and play setup stays under "Play as guest".
+- Guest final round goes straight from the round result to the match results with no flash of the game board.
+- Daily challenge rebuilt on the shared app shell, stat tiles, guess board and keypad.
+- Other player profile uses the same rank pill as My Profile; the friend button is small and sits beside the name.
+- Achievement icons are centred in their badges on every profile (selector scoping fix).
+- App type scale raised by 10%.
+- Guess rows show player avatars instead of initials.

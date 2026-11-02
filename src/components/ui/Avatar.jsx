@@ -5,12 +5,12 @@ const RINGS = ['#8DFF39', '#00E5FF', '#9C4DFF', '#FFBA37'];
  * so the same player always gets the same colour. A supplied avatarUrl wins
  * over the silhouette. `name` is the display name; `size` is px.
  */
-export default function Avatar({ name = '?', size = 36, url, className = '', active = false }) {
+export default function Avatar({ name = '?', size = 36, url, className = '', active = false, ringColor, style: customStyle }) {
   const label = name || '?';
   let h = 0;
   for (const c of label) h = (h * 31 + c.charCodeAt(0)) % RINGS.length;
-  const ring = RINGS[h];
-  // --ui is 0.85 on compact screens and 1 on Home (see app.css), so avatars scale with the rest of the UI.
+  const ring = ringColor || RINGS[h];
+  // --ui is shared across screens, so avatars follow the same compact scale.
   const dim = `calc(${size}px * var(--ui, 1))`;
   const style = { width: dim, height: dim, border: `2px solid ${ring}`, background: `${ring}26` };
   if (url) {
@@ -18,6 +18,7 @@ export default function Avatar({ name = '?', size = 36, url, className = '', act
     style.backgroundSize = 'cover';
     style.backgroundPosition = 'center';
   }
+  Object.assign(style, customStyle);
   return (
     <span
       className={`grid shrink-0 place-items-center overflow-hidden rounded-full select-none ${active ? 'avt-on' : ''} ${className}`.trim()}

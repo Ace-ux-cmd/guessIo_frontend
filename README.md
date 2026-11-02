@@ -1,6 +1,6 @@
 # guessIo Frontend (Web)
 
-The web client for **guessIo**, a multiplayer code-breaking game by Ace Realm. Everyone at the table races to crack the same secret code. Analyse, outsmart, crack the code.
+The web client for **guessIo**, a multiplayer code-breaking game by Elvis. Everyone at the table races to crack the same secret code. Analyse, outsmart, crack the code.
 
 This app talks to the guessIo backend over HTTP and Socket.IO. It also includes a full offline guest mode (Practice) that runs entirely in the browser.
 
@@ -110,11 +110,11 @@ Class names must appear as complete literal strings in JSX (no `"w-" + n`), or t
 
 ## Notes
 
-- Fonts: Orbitron (display) and Barlow (body)
+- Font: Space Grotesk for display and body text
 - Support email and external links are set in `src/constants/legalLinks.js`
 - Terms, Privacy Policy, the game guide and the mobile download page are hosted on `https://guessio.online` and linked from `src/constants/legalLinks.js`
-- There is no frontend test suite yet
+- Frontend tests live in `tests/` and run with `npm test`
 
 ## License
 
-MIT, Copyright (c) 2026 Ace Realm. See `LICENSE`.
+MIT, Copyright (c) 2026 Elvis. See `LICENSE`.

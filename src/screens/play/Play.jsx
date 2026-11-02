@@ -4,6 +4,11 @@ import Icon from '../../components/ui/Icon';
 import { SUPPORTED_PLAYER_COUNTS, PLAYER_COUNT_CONFIG } from '../../constants/gameConfig';
 import { ROUND_TIER_CONFIG } from '../../game/matchConfig';
 import { useAuthStore } from '../../stores/authStore';
+import { useRankedStatus, useRankedOpenCheck } from '../../hooks/useRankedStatus';
+import RankedClosedDialog, { RANKED_CLOSED_TEXT } from '../../components/ui/RankedClosedDialog';
+import { Banner } from '../../components/ui/Feedback';
+
+export { RANKED_CLOSED_TEXT };
 
 const TYPES = [
   { key: 'RANKED', icon: 'bolt', name: 'Ranked', desc: 'Climb the ladder' },
@@ -51,12 +56,26 @@ function OnlinePlay() {
   const [matchType, setMatchType] = useState('RANKED');
   const [difficulty, setDifficulty] = useState('STANDARD');
   const [playerCount, setPlayerCount] = useState(2);
+  const { rankedOpen } = useRankedStatus();
+  const checkRankedOpen = useRankedOpenCheck();
+  const [checking, setChecking] = useState(false);
+  const [closedNotice, setClosedNotice] = useState(false);
+  // Only ranked is shut during the weekly reset; casual, custom rooms and the Daily Challenge stay open.
+  const rankedClosed = matchType === 'RANKED' && !rankedOpen;
   const custom = matchType === 'PRIVATE';
   const config = PLAYER_COUNT_CONFIG[playerCount];
   const typeName = TYPES.find((t) => t.key === matchType).name;
   const rulesName = RULES.find((r) => r.key === difficulty).name;
 
-  function confirm() {
+  async function confirm() {
+    if (rankedClosed || checking) return;
+    // Ask the server at the moment of the tap: what this screen last heard may be minutes old.
+    if (matchType === 'RANKED') {
+      setChecking(true);
+      const open = await checkRankedOpen();
+      setChecking(false);
+      if (!open) { setClosedNotice(true); return; }
+    }
     if (custom) {
       navigate(`/private-room?difficulty=${difficulty}&playerCount=${playerCount}`, { replace: true });
     } else {
@@ -123,9 +142,11 @@ function OnlinePlay() {
           </div>
         </section>
 
-        <button type="button" onClick={confirm} className="launch">{custom ? 'Create a room' : 'Find opponents'} <span aria-hidden="true">&rarr;</span></button>
+        {rankedClosed && <Banner variant="warn">{RANKED_CLOSED_TEXT}</Banner>}
+        <button type="button" onClick={confirm} disabled={rankedClosed || checking} aria-busy={checking} className="launch">{custom ? 'Create a room' : 'Find opponents'} <span aria-hidden="true">&rarr;</span></button>
         <p className="bottom-note">You can change your choice before matchmaking begins.</p>
       </div>
+      <RankedClosedDialog open={closedNotice} onClose={() => setClosedNotice(false)} />
     </main>
   );
 }

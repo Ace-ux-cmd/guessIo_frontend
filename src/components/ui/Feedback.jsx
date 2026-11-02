@@ -17,19 +17,20 @@ export function Banner({ variant = 'info', children }) {
   );
 }
 
-const PULSE = 'animate-pulse rounded-[10px] bg-s1';
+const PULSE = 'animate-pulse rounded-lg bg-s1/70';
 
 /**
- * Placeholder for a whole screen. Screens that need several requests show this
- * until every one has answered, then render everything at once instead of
- * filling in piece by piece.
+ * Placeholder for a whole screen. Kept small and quiet: a title bar, one
+ * summary block and a few short rows, so a page that loads quickly does not
+ * flash a screenful of large blocks. Screens that need several requests show
+ * this until every one has answered, then render everything at once.
  */
 export function PageSkeleton({ cards = 3, label = 'Loading' }) {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col px-5 pb-24 pt-6" role="status" aria-busy="true" aria-label={label}>
-      <div className={`h-9 w-44 ${PULSE}`} />
-      <div className={`mt-5 h-24 ${PULSE}`} />
-      {Array.from({ length: cards }, (_, i) => <div key={i} className={`mt-4 h-16 ${PULSE}`} />)}
+      <div className={`h-6 w-32 ${PULSE}`} />
+      <div className={`mt-4 h-14 ${PULSE}`} />
+      {Array.from({ length: Math.min(cards, 3) }, (_, i) => <div key={i} className={`mt-3 h-10 ${PULSE}`} />)}
       <span className="sr-only">{label}</span>
     </main>
   );
@@ -38,9 +39,9 @@ export function PageSkeleton({ cards = 3, label = 'Loading' }) {
 /** Smaller inline placeholder, for a section inside a screen. */
 export function LoadingScreen({ label = 'Loading' }) {
   return (
-    <div className="mt-5 space-y-3" role="status" aria-busy="true" aria-label={label}>
-      <div className={`h-14 ${PULSE}`} />
-      <div className={`h-14 ${PULSE}`} />
+    <div className="mt-4 space-y-2" role="status" aria-busy="true" aria-label={label}>
+      <div className={`h-10 ${PULSE}`} />
+      <div className={`h-10 ${PULSE}`} />
       <span className="sr-only">{label}</span>
     </div>
   );

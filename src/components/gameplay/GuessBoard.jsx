@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
+import Avatar from '../ui/Avatar';
 
 /**
- * Shared guess history, one row per guess (avatar + tiles), oldest first,
+ * Shared guess history, one row per guess (player avatar + tiles), oldest first,
  * scrolled to the newest. Colours only apply to the viewer's own guesses:
  * feedback is delivered privately to the guesser, so other players' rows show
  * plain digits. A turn that timed out or was frozen adds no row at all.
@@ -65,14 +66,13 @@ export default function GuessBoard({
           if (hit) { feedback = hit.feedback; mirrored = true; }
         }
         const p = playerFor(entry.playerId);
-        const slot = Math.max(0, players.findIndex((x) => x.userId === entry.playerId));
         const states = tileStates(feedback, entry.guess.length, difficulty);
         const label = states
           ? `${mirrored ? `X-Ray, ${p?.username || 'player'}, ` : ''}Guess ${entry.guessNumber ?? index + 1}: ` + entry.guess.split('').map((d, i) => `${d} ${STATE_LABEL[states[i]]}`).join(', ')
           : `${p?.username || 'Player'} guessed ${entry.guess}`;
         return (
           <article key={index} className="guess-row">
-            <span className={`guess-player slot-${slot}`} aria-hidden="true">{(p?.username || '?').slice(0, 2).toUpperCase()}</span>
+            <Avatar name={p?.username || '?'} url={p?.avatarUrl} size={34} className="guess-avatar" />
             <div className="digits" role="img" aria-label={label}>
               {entry.guess.split('').map((digit, i) => (
                 <span

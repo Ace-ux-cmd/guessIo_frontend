@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import BottomNav from '../../components/ui/BottomNav';
+import Avatar from '../../components/ui/Avatar';
 import PlayerSheet from '../../components/social/PlayerSheet';
 import { PageSkeleton, ErrorState, EmptyState } from '../../components/ui/Feedback';
 import * as leaderboardsApi from '../../api/leaderboards.api';
 import { useAuthStore } from '../../stores/authStore';
+import { formatWeekEnd, formatTimeLeft, matchesNeededText } from '../../lib/week';
 
 // Second, first, third: the order the podium stands in, left to right.
 const PODIUM_ORDER = [1, 0, 2];
 const TABS = [['rating', 'Ratings'], ['points', 'Points']];
-
-const initialOf = (name) => (name || '?').charAt(0).toUpperCase();
-const avatarProps = (url) => (url ? { className: 'avatar-img', style: { backgroundImage: `url(${url})` } } : {});
 
 export default function Leaderboards() {
   const [type, setType] = useState('rating');
@@ -29,6 +28,9 @@ export default function Leaderboards() {
   const me = data?.me || null;
   const unit = type === 'rating' ? 'rating' : 'points';
   const rest = items.slice(3);
+  const week = type === 'rating' ? data?.week : null;
+  // A human below the weekly minimum has no rank: the server sends rank null and how many matches are left.
+  const rankLocked = type === 'rating' && me && me.eligible === false;
 
   if (isLoading) return (<><PageSkeleton cards={5} />{isAuthenticated && <BottomNav />}</>);
 
@@ -37,8 +39,12 @@ export default function Leaderboards() {
       <main className="app">
         <header className="topbar">
           <div>
-            <p className="eyebrow">guessIo leaderboard</p>
             <h1>Leaderboard</h1>
+            {week && (
+              <p className="week-note" data-testid="week-end">
+                Resets {formatWeekEnd(week.weekEndsAt)} <span className="week-left">({formatTimeLeft(week.weekEndsAt)} left)</span>
+              </p>
+            )}
           </div>
         </header>
 
@@ -71,10 +77,18 @@ export default function Leaderboards() {
                 return (
                   <article key={e.userId} role="listitem" className={`podium-player${first ? ' center' : ''}`}>
                     {first && <span className="crown rank-variant" aria-label="First place">&#9819;</span>}
-                    <div className="avatar rank-variant" role="img" aria-label={`${e.username} avatar`} {...avatarProps(e.avatarUrl)}>
-                      {!e.avatarUrl && initialOf(e.username)}
-                    </div>
-                    <button type="button" className="podium-name rank-link" onClick={() => setSelected(e)}>{e.username}</button>
+                    <Avatar
+                      name={e.username}
+                      url={e.avatarUrl}
+                      size={first ? 80 : 62}
+                      className="avatar rank-variant"
+                      ringColor={index === 0 ? '#FFBA37' : index === 2 ? '#9C4DFF' : '#00E5FF'}
+                    />
+                    {e.isBot ? (
+                      <span className="podium-name">{e.username}</span>
+                    ) : (
+                      <button type="button" className="podium-name rank-link" onClick={() => setSelected(e)}>{e.username}</button>
+                    )}
                     <span className="podium-rating"><strong className="tnum">{Number(e.value).toLocaleString()}</strong> <span className="metric-label">{unit}</span></span>
                     <div className="podium-block">{index + 1}</div>
                   </article>
@@ -98,10 +112,12 @@ export default function Leaderboards() {
                     return (
                       <li key={e.userId} className={`rank-card${mine ? ' mine' : ''}`}>
                         <span className="rank-number">{String(e.rank).padStart(2, '0')}</span>
-                        <span className="mini-avatar" aria-hidden="true" {...avatarProps(e.avatarUrl)}>{!e.avatarUrl && initialOf(e.username)}</span>
+                        <Avatar name={e.username} url={e.avatarUrl} size={34} className="mini-avatar" />
                         <div className="rank-details">
                           {mine ? (
                             <strong>{e.username} (you)</strong>
+                          ) : e.isBot ? (
+                            <strong>{e.username}</strong>
                           ) : (
                             <strong><button type="button" className="rank-link" onClick={() => setSelected(e)}>{e.username}</button></strong>
                           )}
@@ -114,7 +130,24 @@ export default function Leaderboards() {
               </>
             )}
 
-            {isAuthenticated && me && (
+            {isAuthenticated && rankLocked && (
+              <section className="your-rank" aria-labelledby="your-rank-title">
+                <div className="section-heading rank-variant">
+                  <h2 className="section-title rank-variant" id="your-rank-title">Your rank</h2>
+                  <span className="section-count">Locked</span>
+                </div>
+                <article className="locked-rank" data-testid="locked-rank">
+                  <span className="locked-rank-mark" aria-hidden="true">?</span>
+                  <div className="rank-details">
+                    <strong>{matchesNeededText(me.matchesNeeded)}</strong>
+                    <small>Every match counts toward your rating from the first one. {me.matchesPlayed} played this week.</small>
+                  </div>
+                  <div className="rating tnum" aria-label="Your rating this week">{Number(me.value).toLocaleString()}</div>
+                </article>
+              </section>
+            )}
+
+            {isAuthenticated && me && !rankLocked && me.rank != null && (
               <section className="your-rank" aria-labelledby="your-rank-title">
                 <div className="section-heading rank-variant">
                   <h2 className="section-title rank-variant" id="your-rank-title">Your rank</h2>
@@ -123,7 +156,7 @@ export default function Leaderboards() {
                 <article className="your-card">
                   <span className="you-label">You</span>
                   <span className="rank-number">{me.rank}</span>
-                  <span className="mini-avatar" aria-hidden="true" {...avatarProps(me.avatarUrl)}>{!me.avatarUrl && initialOf(me.username)}</span>
+                  <Avatar name={me.username} url={me.avatarUrl} size={38} className="mini-avatar" />
                   <div className="rank-details"><strong>{me.username}</strong></div>
                   <div className="rating tnum">{Number(me.value).toLocaleString()}</div>
                 </article>

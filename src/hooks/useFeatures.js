@@ -3,7 +3,8 @@ import { getFeatures } from '../api/app.api';
 
 // Every system defaults to on until the server says otherwise, so an old or
 // unreachable config endpoint never hides a feature the backend has.
-const DEFAULTS = { friends: true, safety: true, daily: true, skills: true, push: true, survey: true };
+// The v2.0 weekly release systems default to off: a missing config must not show them.
+const DEFAULTS = { friends: true, safety: true, daily: true, skills: true, push: true, weeklyLeaderboard: false, forfeitSuspension: false, friendInvites: false };
 
 /** Which v2.0.0 systems the backend has switched on. */
 export function useFeatures() {

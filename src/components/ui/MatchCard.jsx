@@ -16,7 +16,7 @@ export default function MatchCard({ match: m }) {
   const versus = opponents.length > 1 ? `${opponents.length} players` : joinNames(opponents);
   const hasDelta = m.ratingChange !== null && m.ratingChange !== undefined;
   return (
-    <Link to={`/history/${m.id}`} replace className={`match-card${v.mod}`}>
+    <Link to={`/history/${m.id}`} state={{ from: '/history' }} className={`match-card${v.mod}`}>
       <div className="result matches-variant" aria-hidden="true">{v.badge}</div>
       <div className="match-info">
         <strong>{v.label} vs {versus}</strong>

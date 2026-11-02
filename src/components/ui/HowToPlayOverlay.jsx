@@ -111,7 +111,7 @@ export default function HowToPlayOverlay({ open, onClose }) {
 
   return (
     <Sheet open={open} onClose={onClose} title="How to play" accent="c">
-      <p className="mt-2 min-h-[66px] text-[15px] text-mute">{text}</p>
+      <p className="mt-2 min-h-[66px] text-[1rem] text-mute">{text}</p>
       {visual && <div className="mt-4 flex flex-col items-center gap-2">{visual}</div>}
       <div className="mt-4 flex justify-center gap-1.5" aria-hidden="true">
         {Array.from({ length: STEPS }, (_, i) => (

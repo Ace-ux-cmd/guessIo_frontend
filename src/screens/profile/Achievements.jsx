@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
-import { ICONS } from '../../components/ui/icons';
+import { AchievementMark, isFlawlessAchievement } from '../../components/achievements/AchievementBadge';
 import { PageSkeleton, ErrorState } from '../../components/ui/Feedback';
 import { useAchievements } from '../../hooks/useAuth';
 
@@ -9,7 +9,9 @@ function Row({ a }) {
   return (
     <article className={`achievement achievements-variant${a.unlocked ? '' : ' locked'}`}>
       <span className="badge achievements-variant" aria-hidden="true">
-        <Icon name={a.unlocked ? (ICONS[a.icon] ? a.icon : 'star') : 'lock'} className="h-4 w-4" />
+        {a.unlocked || isFlawlessAchievement(a.key)
+          ? <AchievementMark achievementKey={a.key} icon={a.icon} className="h-5 w-5" />
+          : <Icon name="lock" className="h-4 w-4" />}
       </span>
       <span className="achievement-copy"><strong>{a.title}</strong><span>{a.description}</span></span>
       <span className="status">{a.unlocked ? (when ? `Done ${when}` : 'Done') : 'Locked'}</span>

@@ -26,13 +26,9 @@ input, textarea { user-select: text; -webkit-user-select: text; }
 .tnum { font-variant-numeric: tabular-nums; }
 .font-display { font-family: 'Space Grotesk', system-ui, sans-serif; font-style: normal; letter-spacing: -.04em; }
 
-/* Scale (v3.9). Screens run on a 13.5px root so every rem-based size (text, spacing,
-   widths) is about 16% smaller than the 16px default. Home alone is full size and
-   opts in with html[data-fullsize] (see hooks/useFullSizeScreen.js). --ui is the same
-   ratio for things sized in px from JS, such as avatars. */
-/* Every screen runs on the template's 16px root so rem values match the mockups. */
-html { font-size: 16px; --ui: 1; }
-html[data-fullsize] { font-size: 16px; --ui: 1; }
+/* One shared scale for every screen. Text is sized in rem, so the root size sets the whole app's type scale.
+   16.5px is the previous 15px plus 10%. --ui keeps avatars on the same compact scale. */
+html { font-size: 16px; --ui: .94; }
 
 /* Surfaces */
 :where(.card) { position: relative; }
@@ -51,7 +47,7 @@ html[data-fullsize] { font-size: 16px; --ui: 1; }
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 52px; padding: 0 22px;
   border: 1px solid transparent; border-radius: 12px;
-  font: 700 15px/1 'Space Grotesk', sans-serif; letter-spacing: .08em; text-transform: uppercase;
+  font: 700 16.5px/1 'Space Grotesk', sans-serif; letter-spacing: .08em; text-transform: uppercase;
   background: #8DFF39; color: #101B0A; box-shadow: 0 0 22px rgba(141, 255, 57, .18);
   transition: transform .15s ease, box-shadow .2s ease, background .2s ease, opacity .2s ease; cursor: pointer;
 }
@@ -69,22 +65,21 @@ button.chip {
 button.chip[aria-pressed='true'], button.chip[aria-selected='true'] { background: #8DFF39; color: #101B0A; border-color: #8DFF39; }
 button.p-2, a.p-2 { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
 
-/* Compact sizes for every screen except Home. The visible chip and key are smaller than
-   44px, so a transparent layer around them keeps the tappable area at 44px. */
-html:not([data-fullsize]) .btn { min-height: 44px; padding: 0 18px; font-size: 14px; }
-html:not([data-fullsize]) button.chip { min-height: 38px; padding: 0 13px; font-size: 14px; }
-html:not([data-fullsize]) .key { min-height: 42px; font-size: 17px; }
-html:not([data-fullsize]) dialog { padding: 16px; }
+/* Compact controls keep a 44px hit area where their visible surface is smaller. */
+.btn { min-height: 44px; padding: 0 18px; font-size: 15.4px; }
+button.chip { min-height: 38px; padding: 0 13px; font-size: 15.4px; }
+.key { min-height: 42px; font-size: 18.7px; }
+dialog { padding: 16px; }
 button.chip, .key { position: relative; }
-html:not([data-fullsize]) button.chip::before { content: ''; position: absolute; inset: -3px 0; }
-html:not([data-fullsize]) .key::before { content: ''; position: absolute; inset: -1px 0; }
+button.chip::before { content: ''; position: absolute; inset: -3px 0; }
+.key::before { content: ''; position: absolute; inset: -1px 0; }
 
 
 /* Tiles and keys. c correct, p present, w/a absent, cur is the cell being typed. */
 .tile {
   position: relative; display: inline-grid; place-items: center;
   border: 2px solid #2A3858; border-radius: 8px; background: #0E152A; color: #fff;
-  font: 700 28px 'Space Grotesk', sans-serif;
+  font: 700 30.8px 'Space Grotesk', sans-serif;
   transition: transform .15s, background .2s;
 }
 .tile.cur, .tile.on { transform: scale(1.07); border-color: #fff; }
@@ -99,7 +94,7 @@ html:not([data-fullsize]) .key::before { content: ''; position: absolute; inset:
 .tile.xr.a, .tile.xr.w { border-color: #3E4E70; color: #6F7F9E; }
 .key {
   min-height: 50px; border: 2px solid #2A3858; border-radius: 8px; background: #16203C; color: #fff;
-  font: 700 20px 'Space Grotesk', sans-serif; box-shadow: none;
+  font: 700 22px 'Space Grotesk', sans-serif; box-shadow: none;
   transition: transform .06s, box-shadow .06s;
 }
 .key:active { transform: scale(.96); }
@@ -176,3 +171,163 @@ dialog::backdrop { background: #000a; }
 a.card:hover, button.card:hover { border-color: rgba(0, 229, 255, .6); }
 a.card:active, button.card:active { transform: scale(.99); }
 button:disabled, .btn:disabled { cursor: not-allowed; }
+
+/* ===== v2.0 weekly leaderboard, recap and invites ===== */
+.week-note {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.week-note .week-left {
+  color: var(--faint);
+}
+
+.locked-rank {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.75rem;
+  border: 1px dashed rgba(138, 176, 229, 0.35);
+  border-radius: 0.8rem;
+  background: rgba(14, 21, 42, 0.6);
+}
+.locked-rank-mark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-weight: 700;
+}
+.locked-rank small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.recap-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.recap-row {
+  display: grid;
+  grid-template-columns: 1.5rem 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 56px;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: var(--panel-light);
+  color: inherit;
+  text-align: left;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+button.recap-row {
+  cursor: pointer;
+}
+button.recap-row:hover {
+  border-color: rgba(0, 229, 255, 0.5);
+  background: var(--panel-bright);
+}
+button.recap-row:active {
+  transform: scale(0.985);
+}
+button.recap-row:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+.recap-row.static {
+  opacity: 0.85;
+}
+.recap-place {
+  color: var(--amber);
+  font-weight: 700;
+  text-align: center;
+}
+.recap-name {
+  min-width: 0;
+}
+.recap-name b,
+.recap-name small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recap-name small {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+.recap-rating {
+  font-weight: 700;
+}
+.recap-own {
+  margin: 0.9rem 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.invite-prompt {
+  position: fixed;
+  top: max(0.75rem, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 60;
+  width: min(calc(100vw - 2rem), 26rem);
+  padding: 0.9rem;
+  border: 1px solid rgba(0, 229, 255, 0.5);
+  border-radius: 0.9rem;
+  background: #0c1930;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  transform: translate(-50%, 0);
+  animation: invite-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.invite-prompt .invite-head {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.invite-prompt .invite-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+.invite-prompt .invite-actions button {
+  flex: 1;
+  min-height: 44px;
+}
+@keyframes invite-in {
+  from { opacity: 0; transform: translate(-50%, -12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .invite-prompt { animation: none; }
+  .recap-row { transition: none; }
+}
+
+/* Podium names open a profile: keep the look, give a finger a 44px target without moving the layout. */
+.player-name-btn {
+  position: relative;
+  cursor: pointer;
+}
+.player-name-btn::after {
+  content: '';
+  position: absolute;
+  inset: -14px -10px;
+}
+/* The locked-rank message wraps instead of being cut off on a narrow phone. */
+.locked-rank .rank-details strong {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}

@@ -71,8 +71,8 @@ export default function GuessInput({ length, value, onChange, onSubmit, disabled
       <div className="entry-notice" role="status">{notice || ''}</div>
       <div className={`keypad${disabled ? ' keys-off' : ''}`} role="group" aria-label="Number keypad">
         {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(digitKey)}
-        {digitKey('0')}
         <button type="button" onClick={backspace} className="key clear">Delete</button>
+        {digitKey('0')}
         <button type="button" onClick={submit} aria-disabled={!canSubmit} className={`key go${canSubmit ? '' : ' is-off'}`}>Go</button>
       </div>
     </>

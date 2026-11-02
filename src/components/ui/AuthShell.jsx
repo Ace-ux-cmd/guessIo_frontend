@@ -1,5 +1,5 @@
-import Wordmark from './Wordmark';
-import Icon from './Icon';
+import Wordmark from "./Wordmark";
+import Icon from "./Icon";
 
 /**
  * Chrome shared by every auth screen (Login, Onboarding, Google callback):
@@ -8,20 +8,27 @@ import Icon from './Icon';
  */
 export default function AuthShell({ title, sub, stage, children, onExit }) {
   return (
-    <main className="auth-main relative mx-auto flex min-h-screen w-full max-w-[430px] flex-col pb-6">
+    <main className="auth-main relative mx-auto flex min-h-screen w-full flex-col pb-6">
       {onExit && (
-        <button type="button" onClick={onExit} className="absolute right-3 top-3 p-2 text-mute" aria-label="Exit sign-up">
+        <button
+          type="button"
+          onClick={onExit}
+          className="absolute right-3 top-3 p-2 text-mute"
+          aria-label="Exit sign-up"
+        >
           <Icon name="close" />
         </button>
       )}
-      <section className="auth-intro px-6 pt-8">
+      <section className="auth-intro px-5 pt-6">
         <Wordmark className="h-10" glitch />
-        <h1 className="font-display mt-4 text-[32px] font-bold leading-[1.04]">{title}</h1>
-        {sub && <p className="mt-2 max-w-[32ch] text-base text-mute">{sub}</p>}
-        {stage && <div className="mt-5">{stage}</div>}
+        <h1 className="auth-title font-display mt-3 font-bold leading-[1.06]">
+          {title}
+        </h1>
+        {sub && <p className="mt-1.5 max-w-[34ch] text-sm text-mute">{sub}</p>}
+        {stage && <div className="mt-4">{stage}</div>}
       </section>
-      <section className="auth-actions flex flex-1 flex-col px-6">
-        <div className="mt-auto space-y-3 pt-5">{children}</div>
+      <section className="auth-actions flex flex-1 flex-col px-5">
+        <div className="mt-auto space-y-3 pt-4">{children}</div>
       </section>
     </main>
   );

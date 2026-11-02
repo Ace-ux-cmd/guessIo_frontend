@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { getSocket, connectSocket } from '../sockets/socketClient';
 import { useMatchStore } from '../stores/matchStore';
+import { RANKED_STATUS_KEY } from './useRankedStatus';
 
 /**
  * Connects the socket (if needed) and wires every server -> client match
@@ -10,6 +12,7 @@ import { useMatchStore } from '../stores/matchStore';
  */
 export function useMatchSocket() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Actions are stable, so read them once. Subscribing to the whole store here
@@ -44,6 +47,16 @@ export function useMatchSocket() {
       'skill.lobby.closed': () => store.onSkillLobbyClosed(),
       'skill.assigned': (env) => store.onSkillAssigned(env.payload),
       'skill.result': (env) => store.onSkillResult(env.payload),
+      // The server shut or reopened the ranked queue for the weekly reset.
+      'ranked.status': (env) => {
+        const { open, state, weekEndsAt } = env.payload;
+        queryClient.setQueryData(RANKED_STATUS_KEY, (old) => ({ ...(old || {}), rankedOpen: open, state, weekEndsAt }));
+        useMatchStore.setState({ rankedOpen: open });
+        // A reopened queue means a new week: the board starts from zero.
+        if (open) queryClient.invalidateQueries({ queryKey: ['leaderboard'] });
+      },
+      'skill.consumed': (env) => store.onSkillConsumed(env.payload),
+      'skill.returned': (env) => store.onSkillReturned(env.payload),
       'skill.xray': (env) => store.onSkillXray(env.payload),
       'skill.frozen': () => store.onSkillFrozen(),
       'skill.monitored': () => store.onSkillMonitored(),

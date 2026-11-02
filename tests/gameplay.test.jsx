@@ -180,3 +180,12 @@ describe('guess input while a guess is in flight', () => {
     expect(screen.queryByText('1 is already used')).toBeNull();
   });
 });
+
+describe('skill tab while a skill is active', () => {
+  it('shows Active and cannot be pressed again until the server spends or returns it', () => {
+    useMatchStore.setState({ players, disconnectedPlayerIds: [], mySkill: { skill: 'EXTRA_TURN', used: false, pending: true } });
+    render(<SkillTab matchId="m" myUserId="a" myTurn guessesLeft={9} />);
+    expect(screen.getByRole('button').textContent).toMatch(/active/i);
+    expect(screen.getByRole('button').disabled).toBe(true);
+  });
+});

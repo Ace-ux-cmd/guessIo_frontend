@@ -23,21 +23,9 @@ export default function GuestHome() {
 
         <div className="px-5 empty:hidden"><ConnectionBanner /></div>
 
-        {/* Real play entry points: guest matches run entirely client-side
-            (see game/GuestMatch.js), so these stay even though the template's
-            own guest_home.html has no equivalent section for them. */}
-        <section className="px-5 pt-4">
-          <Link to="/play?guest=1" replace className="card a-g block p-4">
-            <p className="font-display text-2xl font-bold">Play solo</p>
-            <p className="mt-1 text-[13px] text-mute">Crack the code against the system. No account needed.</p>
-          </Link>
-          <div className="card a-c mt-3 p-4">
-            <h2 className="font-display text-lg font-bold">Pass and play</h2>
-            <p className="mt-1 text-[13px] text-mute">Two players on one phone, taking turns on the same code.</p>
-            <Link to="/play?guest=1&mode=PASS_AND_PLAY" replace className="btn alt mt-3 w-full">Set up pass and play</Link>
-          </div>
-        </section>
-
+        {/* Guest matches run client-side (game/GuestMatch.js). "Play as guest"
+            below opens the guest setup screen, which offers both Vs computer
+            and Pass and play, so no separate entry cards are needed here. */}
         <section className="podium guest-variant" aria-labelledby="leaderboard-title">
           <div className="guard">
             <div className="guard-icon" aria-hidden="true">&#9819;</div>

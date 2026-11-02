@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import Avatar from '../../components/ui/Avatar';
 import BottomNav from '../../components/ui/BottomNav';
 import Icon from '../../components/ui/Icon';
-import { ICONS } from '../../components/ui/icons';
+import { AchievementMark, isFlawlessAchievement } from '../../components/achievements/AchievementBadge';
 import { PageSkeleton, ErrorState } from '../../components/ui/Feedback';
 import { EditProfileSheet, LogoutDialog } from '../../components/profile/AccountSheets';
 import { useCurrentUser, useAchievements } from '../../hooks/useAuth';
@@ -44,6 +45,7 @@ export default function Profile() {
   // Unlocked badges first, so the preview shows what the player has earned.
   const preview = [...achievements].sort((a, b) => Number(b.unlocked) - Number(a.unlocked)).slice(0, PREVIEW_COUNT);
   const banner = achievementsData?.topRankBanner;
+  const bannerRankTone = banner?.rank === 1 ? 'gold' : banner?.rank === 2 ? 'silver' : banner?.rank === 3 ? 'bronze' : 'default';
   const joined = formatJoined(user?.createdAt);
   const streak = user?.dailyStreak;
   const requests = user?.friends?.incomingRequests ?? 0;
@@ -53,14 +55,14 @@ export default function Profile() {
       <main className="app">
         <header className="profile-header">
           <p className="eyebrow profile-variant">Player profile</p>
-          <div
+          <Avatar
+            name={name}
+            url={p?.avatarUrl}
+            size={90}
             className="profile-avatar"
-            role="img"
-            aria-label={`${name} avatar`}
-            style={p?.avatarUrl ? { backgroundImage: `url(${p.avatarUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}
-          >
-            {!p?.avatarUrl && (name || '?').charAt(0).toUpperCase()}
-          </div>
+            ringColor="#00E5FF"
+            style={{ borderColor: 'var(--cyan)', ...(!p?.avatarUrl ? { background: 'radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%)' } : {}) }}
+          />
           <div className="name-row">
             <h1 className="profile-variant">{name}</h1>
             <button type="button" className="profile-action" aria-label="Edit profile" onClick={() => setEditOpen(true)}>
@@ -79,13 +81,13 @@ export default function Profile() {
             </Link>
           )}
           <p className="handle">@{p?.username}{joined ? ` · Joined ${joined}` : ''}</p>
-          {banner?.active && <span className="top-ten">Rank #{banner.rank} on the leaderboard</span>}
+          {banner?.active && <span className={`top-ten ${bannerRankTone}`}>Rank #{banner.rank} on the leaderboard</span>}
         </header>
 
         <section className="stats profile-variant" aria-label="Player totals">
           <div className="stat profile-variant"><strong className="tnum">{(p?.rating ?? 0).toLocaleString()}</strong><span>Rating</span></div>
           <div className="stat profile-variant"><strong className="tnum">{(p?.points ?? 0).toLocaleString()}</strong><span>Points</span></div>
-          <div className="stat profile-variant"><strong className="tnum">{winRate !== null ? `${winRate}%` : '-'}</strong><span>Win rate</span><small>{won} {won === 1 ? 'win' : 'wins'}</small></div>
+          <div className="stat profile-variant"><strong className="tnum">{winRate !== null ? `${winRate}%` : '-'}</strong><span>Win rate</span></div>
           <div className="stat profile-variant"><strong className="tnum">{played.toLocaleString()}</strong><span>Matches</span></div>
         </section>
 
@@ -112,7 +114,9 @@ export default function Profile() {
                 {preview.map((a) => (
                   <article key={a.key} className={`achievement profile-variant${a.unlocked ? '' : ' locked'}`}>
                     <span className="badge profile-variant" aria-hidden="true">
-                      <Icon name={a.unlocked ? (ICONS[a.icon] ? a.icon : 'star') : 'lock'} className="h-4 w-4" />
+                      {a.unlocked || isFlawlessAchievement(a.key)
+                        ? <AchievementMark achievementKey={a.key} icon={a.icon} className="h-5 w-5" />
+                        : <Icon name="lock" className="h-4 w-4" />}
                     </span>
                     <div><strong>{a.title}</strong><span>{a.description}</span></div>
                   </article>

@@ -18,7 +18,7 @@ export default function MatchRow({ match: m }) {
   const hasDelta = m.ratingChange !== null && m.ratingChange !== undefined;
 
   return (
-    <Link to={`/history/${m.id}`} replace className={`game${v.loss ? ' loss' : ''}`}>
+    <Link to={`/history/${m.id}`} state={{ from: '/dashboard' }} className={`game${v.loss ? ' loss' : ''}`}>
       <div className="result home-variant" aria-hidden="true">{v.letter}</div>
       <div className="game-info">
         <strong>{title}</strong>

@@ -106,16 +106,17 @@ export function SkillTab({ matchId, myUserId, myTurn, guessesLeft, busy }) {
   }, [picking, endsAt, left]);
 
   if (!mySkill || !mySkill.skill) return null;
-  const { skill, used } = mySkill;
+  const { skill, used, pending } = mySkill;
   const opponents = players.filter((p) => p.userId !== myUserId && !disconnected.includes(p.userId));
   const needsTarget = (skill === 'FREEZE' || skill === 'XRAY_VISION') && opponents.length > 1;
   const locked = skill === 'EXTRA_TURN' && guessesLeft <= 1;
 
   let label = `Use ${skillName(skill)}`;
   if (used) label = `${skillName(skill)} used`;
+  else if (pending) label = `${skillName(skill)} active`;
   else if (locked) label = 'Extra Turn locked';
   else if (!myTurn) label = `${skillName(skill)} on your turn`;
-  const disabled = used || locked || !myTurn || busy;
+  const disabled = used || pending || locked || !myTurn || busy;
 
   function activate(targetId) {
     emit('skill.activate', { matchId, skill, ...(targetId ? { targetId } : {}) });
