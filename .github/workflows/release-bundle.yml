@@ -3,7 +3,7 @@ name: Release Web Bundle
 # Every push to main publishes a new OTA bundle (OTA spec 3.4): a push to main is a live deployment.
 on:
   push:
-    branches: [main, feat_v2.0]
+    branches: [main]
 
 permissions:
   contents: write
