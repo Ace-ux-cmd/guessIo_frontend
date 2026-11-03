@@ -59,6 +59,12 @@ jobs:
       - name: Create the Android project
         run: |
           npx cap add android
+          # Firebase config for push notifications. Without the secret the APK still builds, but notifications cannot work in it.
+          if [ -n "$GOOGLE_SERVICES_JSON_BASE64" ]; then
+            echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 -d > android/app/google-services.json
+          else
+            echo "::warning::GOOGLE_SERVICES_JSON_BASE64 is not set, so notifications will not work in this APK (see ANDROID_BUILD.md)"
+          fi
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/guessio.keystore"
           node scripts/prepare-android.mjs
           npx cap sync android
@@ -69,6 +75,7 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
 
       - name: Build signed APK
         working-directory: android

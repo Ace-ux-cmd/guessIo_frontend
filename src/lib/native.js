@@ -64,3 +64,24 @@ export function routeFromDeepLink(url) {
   if (!ALLOWED_LINKS.some((re) => re.test(path))) return null;
   return { pathname: `/${path}`, search: parsed.search, hash: parsed.hash };
 }
+
+// Where a tapped push may lead. The backend names a path in every message; only these in-app destinations are ever opened.
+const PUSH_ROUTES = [
+  { match: /^\/leaderboards?$/, to: () => '/leaderboards' },
+  { match: /^\/friends$/, to: (url) => (new URLSearchParams(url.search).get('tab') === 'requests' ? '/friends?tab=requests' : '/friends') },
+  { match: /^\/daily$/, to: () => '/daily' },
+  { match: /^\/players\/[A-Za-z0-9_.-]{1,40}$/, to: (url) => url.pathname },
+];
+
+/** Turns the `url` of a push into an in-app route. Anything unexpected opens the dashboard. */
+export function routeFromPush(raw) {
+  if (typeof raw !== 'string' || !raw.startsWith('/') || raw.startsWith('//')) return '/dashboard';
+  let url;
+  try {
+    url = new URL(raw, 'https://app.invalid');
+  } catch {
+    return '/dashboard';
+  }
+  const route = PUSH_ROUTES.find((r) => r.match.test(url.pathname));
+  return route ? route.to(url) : '/dashboard';
+}

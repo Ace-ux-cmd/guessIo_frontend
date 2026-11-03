@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import BottomNav from '../../components/ui/BottomNav';
 import Avatar from '../../components/ui/Avatar';
@@ -11,7 +11,8 @@ import { EditProfileSheet, DeleteAccountSheet } from '../../components/profile/A
 import { DOCS_URL, TERMS_URL, PRIVACY_URL, DOWNLOAD_URL } from '../../constants/legalLinks';
 import * as safetyApi from '../../api/safety.api';
 import * as pushApi from '../../api/push.api';
-import { enablePush, disablePush, isSubscribed, pushPermission, pushSupported } from '../../lib/push';
+import { enablePush, disablePush, getPushState } from '../../lib/push';
+import { isNative } from '../../lib/native';
 import { getErrorMessage } from '../../api/client';
 import { APP_VERSION } from '../../lib/version';
 
@@ -84,11 +85,12 @@ const ALL_ON = { rankLoss: true, friendActivity: true, dailyStreak: true };
  * alert types read as off and cannot be changed. Turning it off saves them all
  * off; turning it back on enables all three again.
  */
-function NotificationsSection({ prefs, subscribed }) {
+function NotificationsSection({ prefs, state }) {
   const queryClient = useQueryClient();
   const [message, setMessage] = useState(null);
-  const supported = pushSupported();
-  const deviceOn = supported && Boolean(subscribed);
+  const supported = state.supported;
+  const blocked = state.permission === 'denied';
+  const deviceOn = supported && state.subscribed;
   const save = useMutation({
     mutationFn: pushApi.updatePushPreferences,
     onSuccess: (next) => queryClient.setQueryData(['pushPrefs'], next),
@@ -99,7 +101,7 @@ function NotificationsSection({ prefs, subscribed }) {
       if (on) await enablePush(); else await disablePush();
       return pushApi.updatePushPreferences(on ? ALL_ON : ALL_OFF);
     },
-    onSuccess: (next) => { setMessage(null); queryClient.setQueryData(['pushPrefs'], next); queryClient.invalidateQueries({ queryKey: ['pushSubscribed'] }); },
+    onSuccess: (next) => { setMessage(null); queryClient.setQueryData(['pushPrefs'], next); queryClient.invalidateQueries({ queryKey: ['pushState'] }); },
     onError: (err) => setMessage(err.message || 'Could not change notifications on this device.'),
   });
   const busy = device.isPending || save.isPending;
@@ -107,20 +109,20 @@ function NotificationsSection({ prefs, subscribed }) {
     <Toggle variant="settings" label={label} description={description} checked={deviceOn && prefs[key]} disabled={!deviceOn || busy} onChange={(v) => save.mutate({ [key]: v })} />
   );
   return (
-    <section className="section" aria-labelledby="notifications-title">
+    <section id="notifications" className="section" aria-labelledby="notifications-title">
       <SectionTitle id="notifications-title">Notifications</SectionTitle>
       <div className="settings-list">
         {supported ? (
           <Toggle
             variant="settings"
             label="Notifications on this device"
-            description={pushPermission() === 'denied' ? 'Blocked in your browser settings.' : 'Turn off to silence everything below.'}
+            description={blocked ? `Blocked in your ${isNative() ? 'phone' : 'browser'} settings.` : 'Turn off to silence everything below.'}
             checked={deviceOn}
-            disabled={busy || pushPermission() === 'denied'}
+            disabled={busy || blocked}
             onChange={(v) => device.mutate(v)}
           />
         ) : (
-          <p className="setting-note">This browser cannot receive notifications.</p>
+          <p className="setting-note">{isNative() ? 'Notifications need the latest version of the app. Update guessIo to turn them on.' : 'This browser cannot receive notifications.'}</p>
         )}
         {typeToggle('Lost a top 3 spot', 'When someone knocks you out of the top 3.', 'rankLoss')}
         {typeToggle('Friend activity', 'Requests and accepted requests.', 'friendActivity')}
@@ -170,10 +172,18 @@ export default function Settings() {
   // Every section's data is fetched here, so the page appears once, complete.
   const privacy = useQuery({ queryKey: ['privacy'], queryFn: safetyApi.getPrivacy, enabled: safety });
   const prefs = useQuery({ queryKey: ['pushPrefs'], queryFn: pushApi.getPushPreferences, enabled: push });
-  const subscribed = useQuery({ queryKey: ['pushSubscribed'], queryFn: isSubscribed, enabled: push });
+  const pushState = useQuery({ queryKey: ['pushState'], queryFn: getPushState, enabled: push });
   const blocked = useQuery({ queryKey: ['blocked'], queryFn: safetyApi.listBlocked, enabled: safety });
 
-  const waiting = !user || (safety && (privacy.isLoading || blocked.isLoading)) || (push && (prefs.isLoading || subscribed.isLoading));
+  const waiting = !user || (safety && (privacy.isLoading || blocked.isLoading)) || (push && (prefs.isLoading || pushState.isLoading));
+
+  // Arriving from the notifications prompt (/settings#notifications): bring that section into view once the page has rendered.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (waiting || hash !== '#notifications') return;
+    document.getElementById('notifications')?.scrollIntoView({ block: 'start' });
+  }, [waiting, hash]);
+
   if (waiting) return (<><PageSkeleton cards={5} /><BottomNav active="/profile" /></>);
 
   const name = user.displayName || user.username;
@@ -206,7 +216,7 @@ export default function Settings() {
           </section>
 
           {safety && privacy.data && <PrivacySection data={privacy.data} />}
-          {push && prefs.data && <NotificationsSection prefs={prefs.data} subscribed={subscribed.data} />}
+          {push && prefs.data && pushState.data && <NotificationsSection prefs={prefs.data} state={pushState.data} />}
           {safety && <BlockedSection data={blocked.data} />}
 
           <section className="section" aria-labelledby="help-title">

@@ -1,7 +1,7 @@
 // Run after `npx cap add android`. Applies the project-specific parts of the
-// native shell: the io.guessio.app:// sign-in link, version numbers, and release signing.
+// native shell: the io.guessio.app:// sign-in link, the notification permission, version numbers, and release signing.
 // Env: ANDROID_VERSION_NAME, ANDROID_VERSION_CODE; KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD (signing).
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const manifestPath = 'android/app/src/main/AndroidManifest.xml';
 const gradlePath = 'android/app/build.gradle';
@@ -24,6 +24,20 @@ if (!manifest.includes(`android:scheme="${scheme}"`)) {
   writeFileSync(manifestPath, manifest);
 }
 
+// Android 13+ only shows the notification prompt to an app that declares this. The push plugin asks for the
+// permission at run time but does not declare it.
+manifest = readFileSync(manifestPath, 'utf8');
+if (!manifest.includes('android.permission.POST_NOTIFICATIONS')) {
+  const permission = '    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />\n';
+  const next = manifest.replace(/(\s*)<\/manifest>/, `\n${permission}</manifest>`);
+  if (next === manifest) throw new Error('Could not find </manifest> in AndroidManifest.xml');
+  writeFileSync(manifestPath, next);
+}
+
+// Push needs the Firebase config the CI step writes from the GOOGLE_SERVICES_JSON_BASE64 secret.
+const pushReady = existsSync('android/app/google-services.json');
+if (!pushReady) console.warn('WARNING: android/app/google-services.json is missing. The APK will build, but notifications cannot work in it (see ANDROID_BUILD.md).');
+
 let gradle = readFileSync(gradlePath, 'utf8');
 const name = process.env.ANDROID_VERSION_NAME;
 const code = process.env.ANDROID_VERSION_CODE;
@@ -45,4 +59,4 @@ if (process.env.KEYSTORE_PATH && !gradle.includes('signingConfigs.release')) {
   gradle = gradle.replace(/(buildTypes\s*\{[\s\S]*?release\s*\{)/, '$1\n            signingConfig signingConfigs.release');
 }
 writeFileSync(gradlePath, gradle);
-console.log(`Android shell prepared (scheme ${scheme}, version ${name ?? 'unchanged'}, signing ${process.env.KEYSTORE_PATH ? 'on' : 'off'}).`);
+console.log(`Android shell prepared (scheme ${scheme}, version ${name ?? 'unchanged'}, signing ${process.env.KEYSTORE_PATH ? 'on' : 'off'}, push ${pushReady ? 'on' : 'off'}).`);

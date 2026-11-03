@@ -5,6 +5,7 @@ import Button from './ui/Button';
 import { isNative, routeFromDeepLink } from '../lib/native';
 import { applyPendingBundle, checkForBundleUpdate } from '../lib/ota';
 import { checkNativeUpdate, openApkDownload } from '../lib/nativeUpdate';
+import { useNativePush } from '../hooks/useNativePush';
 
 const DISMISS_KEY = 'guessio_apk_prompt_dismissed';
 const readDismissed = () => {
@@ -13,13 +14,14 @@ const readDismissed = () => {
 
 /**
  * Everything that only exists inside the Android app: Google sign-in returning
- * through the io.guessio.app:// link, the once-per-launch OTA bundle check, and the
- * non-blocking "new APK" prompt. Renders nothing in a browser.
+ * through the io.guessio.app:// link, the once-per-launch OTA bundle check, push
+ * notification taps, and the non-blocking "new APK" prompt. Renders nothing in a browser.
  */
 export default function NativeBridge() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [apk, setApk] = useState(null);
+  useNativePush();
 
   useEffect(() => {
     if (!isNative()) return undefined;
