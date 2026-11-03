@@ -5,11 +5,6 @@ export async function getRatingLeaderboard({ page = 1, pageSize = 50 } = {}) {
   return data;
 }
 
-export async function getPointsLeaderboard({ page = 1, pageSize = 50 } = {}) {
-  const { data } = await apiClient.get('/leaderboards/points', { params: { page, pageSize } });
-  return data;
-}
-
 /** The current week, when it ends, and whether ranked matchmaking is open. */
 export async function getWeeklyStatus() {
   const { data } = await apiClient.get('/leaderboards/weekly/status');

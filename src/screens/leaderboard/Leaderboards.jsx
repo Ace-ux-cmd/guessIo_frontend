@@ -10,27 +10,24 @@ import { formatWeekEnd, formatTimeLeft, matchesNeededText } from '../../lib/week
 
 // Second, first, third: the order the podium stands in, left to right.
 const PODIUM_ORDER = [1, 0, 2];
-const TABS = [['rating', 'Ratings'], ['points', 'Points']];
 
 export default function Leaderboards() {
-  const [type, setType] = useState('rating');
   const [selected, setSelected] = useState(null);
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['leaderboard', type],
-    queryFn: () => (type === 'rating' ? leaderboardsApi.getRatingLeaderboard() : leaderboardsApi.getPointsLeaderboard()),
+    queryKey: ['leaderboard', 'rating'],
+    queryFn: () => leaderboardsApi.getRatingLeaderboard(),
   });
 
   // The board is the top 20; your own rank is shown separately below it.
   const items = (data?.items || []).slice(0, 20);
   const me = data?.me || null;
-  const unit = type === 'rating' ? 'rating' : 'points';
   const rest = items.slice(3);
-  const week = type === 'rating' ? data?.week : null;
+  const week = data?.week ?? null;
   // A human below the weekly minimum has no rank: the server sends rank null and how many matches are left.
-  const rankLocked = type === 'rating' && me && me.eligible === false;
+  const rankLocked = me && me.eligible === false;
 
   if (isLoading) return (<><PageSkeleton cards={5} />{isAuthenticated && <BottomNav />}</>);
 
@@ -49,21 +46,6 @@ export default function Leaderboards() {
         </header>
 
         <section className="podium-wrap">
-          <div className="leaderboard-tabs" role="tablist" aria-label="Leaderboard type">
-            {TABS.map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={type === key}
-                className={`leaderboard-tab${type === key ? ' active' : ''}`}
-                onClick={() => setType(key)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
           {isError ? (
             <div className="mt-4"><ErrorState description="Could not load the leaderboard." /></div>
           ) : items.length === 0 ? (
@@ -89,7 +71,7 @@ export default function Leaderboards() {
                     ) : (
                       <button type="button" className="podium-name rank-link" onClick={() => setSelected(e)}>{e.username}</button>
                     )}
-                    <span className="podium-rating"><strong className="tnum">{Number(e.value).toLocaleString()}</strong> <span className="metric-label">{unit}</span></span>
+                    <span className="podium-rating"><strong className="tnum">{Number(e.value).toLocaleString()}</strong> <span className="metric-label">rating</span></span>
                     <div className="podium-block">{index + 1}</div>
                   </article>
                 );

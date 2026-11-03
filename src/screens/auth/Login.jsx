@@ -6,6 +6,7 @@ import LoginDemoBoard from '../../components/ui/LoginDemoBoard';
 import { Banner } from '../../components/ui/Feedback';
 import { useAuthStore } from '../../stores/authStore';
 import { getGoogleLoginUrl } from '../../api/auth.api';
+import { isNative, startNativeGoogleSignIn } from '../../lib/native';
 import { TERMS_URL, PRIVACY_URL, DOWNLOAD_URL } from '../../constants/legalLinks';
 
 /**
@@ -36,6 +37,11 @@ export default function Login() {
   function startGoogle() {
     if (!agreed) return;
     setConnecting(true);
+    if (isNative()) {
+      // The system browser opens on top of the app; come back to the button if it is dismissed.
+      startNativeGoogleSignIn().catch(() => {}).finally(() => setTimeout(() => setConnecting(false), 1500));
+      return;
+    }
     window.location.assign(getGoogleLoginUrl());
   }
 

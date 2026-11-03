@@ -1,5 +1,8 @@
 const RINGS = ['#8DFF39', '#00E5FF', '#9C4DFF', '#FFBA37'];
 
+// Escapes the characters that could end a quoted CSS url() early, leaving the rest (including existing %xx) as is.
+const cssSafeUrl = (value) => String(value).replace(/["\\\s()]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0')}`);
+
 /**
  * Round avatar with an accent ring. The ring colour is derived from the name,
  * so the same player always gets the same colour. A supplied avatarUrl wins
@@ -14,7 +17,7 @@ export default function Avatar({ name = '?', size = 36, url, className = '', act
   const dim = `calc(${size}px * var(--ui, 1))`;
   const style = { width: dim, height: dim, border: `2px solid ${ring}`, background: `${ring}26` };
   if (url) {
-    style.backgroundImage = `url(${url})`;
+    style.backgroundImage = `url("${cssSafeUrl(url)}")`;
     style.backgroundSize = 'cover';
     style.backgroundPosition = 'center';
   }

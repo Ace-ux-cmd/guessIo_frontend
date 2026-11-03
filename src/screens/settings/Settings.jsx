@@ -122,7 +122,7 @@ function NotificationsSection({ prefs, subscribed }) {
         ) : (
           <p className="setting-note">This browser cannot receive notifications.</p>
         )}
-        {typeToggle('Lost a top 3 spot', 'Someone passed you on the rating ladder.', 'rankLoss')}
+        {typeToggle('Lost a top 3 spot', 'When someone knocks you out of the top 3.', 'rankLoss')}
         {typeToggle('Friend activity', 'Requests and accepted requests.', 'friendActivity')}
         {typeToggle('Daily streak at risk', 'A reminder before your streak ends at 00:00 UTC.', 'dailyStreak')}
       </div>

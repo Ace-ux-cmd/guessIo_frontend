@@ -9,10 +9,9 @@ import GuessBoard from '../../components/gameplay/GuessBoard';
 import TurnPanel from '../../components/gameplay/TurnPanel';
 import { PageSkeleton, ErrorState, Banner } from '../../components/ui/Feedback';
 import * as dailyApi from '../../api/daily.api';
+import DailyRetryDialogs, { fmtMs } from './DailyRetry';
 import { getErrorMessage } from '../../api/client';
 import { useCurrentUser } from '../../hooks/useAuth';
-
-const fmtMs = (ms) => (ms == null ? '-' : ms >= 60000 ? `${Math.floor(ms / 60000)}m ${String(Math.floor((ms % 60000) / 1000)).padStart(2, '0')}s` : `${(ms / 1000).toFixed(1)}s`);
 
 const PLAYER_ID = 'daily-player';
 
@@ -86,14 +85,17 @@ function Calendar({ view }) {
   );
 }
 
-function Attempt({ attempt, onEnd }) {
+function Attempt({ attempt, onEnd, onRetryStarted }) {
   const queryClient = useQueryClient();
+  const { data: dailyView } = useQuery({ queryKey: ['daily'], queryFn: dailyApi.getDaily });
   const { data: me } = useCurrentUser();
   const [draft, setDraft] = useState('');
   const [rows, setRows] = useState(attempt.guesses);
   const [outcome, setOutcome] = useState(null); // { status, result }
   const [error, setError] = useState(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [promptOpen, setPromptOpen] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const busy = useRef(false);
 
   const send = useMutation({
@@ -103,7 +105,11 @@ function Attempt({ attempt, onEnd }) {
       setError(null);
       setDraft('');
       setRows((r) => [...r, { guess, feedback: res.feedback }]);
-      if (res.status !== 'ACTIVE') setOutcome({ status: res.status, result: res.result });
+      if (res.status !== 'ACTIVE') {
+        setOutcome({ status: res.status, result: res.result });
+        // A finish that missed the time to beat (or a retry that ran out of guesses) offers a paid retry.
+        if (res.status === 'FAILED' || res.result?.result === 'MISS') setPromptOpen(true);
+      }
       queryClient.invalidateQueries({ queryKey: ['daily'] });
       queryClient.invalidateQueries({ queryKey: ['me'] });
     },
@@ -173,6 +179,11 @@ function Attempt({ attempt, onEnd }) {
               {completed
                 ? <Link to="/dashboard" replace className="action results-victory-variant primary">Back home</Link>
                 : <button type="button" className="action results-victory-variant primary" onClick={onEnd}>Try again</button>}
+              {dailyView?.retry?.available && (
+                <button type="button" className="action results-victory-variant secondary" onClick={() => setConfirmOpen(true)}>
+                  Retry for {dailyView.retry.cost} points
+                </button>
+              )}
             </div>
           </section>
         ) : (
@@ -182,6 +193,17 @@ function Attempt({ attempt, onEnd }) {
           </TurnPanel>
         )}
       </main>
+      <DailyRetryDialogs
+        retry={dailyView?.retry}
+        finishedMs={result?.elapsedMs}
+        targetMs={result?.previousBestMs}
+        promptOpen={promptOpen}
+        confirmOpen={confirmOpen}
+        onPromptClose={() => setPromptOpen(false)}
+        onConfirmOpen={() => setConfirmOpen(true)}
+        onConfirmClose={() => setConfirmOpen(false)}
+        onStarted={onRetryStarted}
+      />
       <ConfirmDialog
         open={leaveOpen}
         tone="warn"
@@ -210,6 +232,7 @@ function statusLine(view, closed) {
 export default function Daily() {
   const queryClient = useQueryClient();
   const [playing, setPlaying] = useState(null);
+  const [retryOpen, setRetryOpen] = useState(false);
   const { data: view, isLoading, isError, refetch, isFetching } = useQuery({ queryKey: ['daily'], queryFn: dailyApi.getDaily });
   const resetsIn = useCountdown(view?.resetsAt);
   const start = useMutation({
@@ -217,7 +240,7 @@ export default function Daily() {
     onSuccess: (next) => { queryClient.setQueryData(['daily'], next); setPlaying(next.activeAttempt); },
   });
 
-  if (playing) return <Attempt key={playing.attemptId} attempt={playing} onEnd={() => { setPlaying(null); queryClient.invalidateQueries({ queryKey: ['daily'] }); }} />;
+  if (playing) return <Attempt key={playing.attemptId} attempt={playing} onRetryStarted={(next) => setPlaying(next.activeAttempt)} onEnd={() => { setPlaying(null); queryClient.invalidateQueries({ queryKey: ['daily'] }); }} />;
 
   if (isLoading) return (<><PageSkeleton cards={3} /><BottomNav active="/dashboard" /></>);
 
@@ -258,7 +281,19 @@ export default function Daily() {
                 <p className={`daily-status${line.tone ? ` ${line.tone}` : ''}`} role="status">{line.text}</p>
               </section>
 
-              {closed ? (
+              {closed && view.retry?.available ? (
+                <>
+                  <button type="button" className="launch daily-start" disabled={view.retry.points < view.retry.cost} onClick={() => setRetryOpen(true)}>
+                    Retry for {view.retry.cost} points
+                    <span aria-hidden="true">&rarr;</span>
+                  </button>
+                  <p className="helper" role="status">
+                    {view.retry.points >= view.retry.cost
+                      ? `You have ${view.retry.points} points. Pass the time to beat and today's square turns green.`
+                      : `You need ${view.retry.cost} points to retry and have ${view.retry.points}. Win a few matches to earn more.`}
+                  </p>
+                </>
+              ) : closed ? (
                 <p className="daily-done">Done for today. A new challenge opens in {resetsIn} (00:00 UTC).</p>
               ) : (
                 <button
@@ -295,6 +330,16 @@ export default function Daily() {
           )}
         </div>
       </main>
+      {view && (
+        <DailyRetryDialogs
+          retry={view.retry}
+          confirmOpen={retryOpen}
+          onConfirmOpen={() => setRetryOpen(true)}
+          onConfirmClose={() => setRetryOpen(false)}
+          onPromptClose={() => {}}
+          onStarted={(next) => setPlaying(next.activeAttempt)}
+        />
+      )}
       <BottomNav active="/dashboard" />
     </>
   );

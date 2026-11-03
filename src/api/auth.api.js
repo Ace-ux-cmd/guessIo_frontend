@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { clearGoogleVerifier, readGoogleVerifier } from '../lib/native';
 
 export async function logout() {
   await apiClient.post('/auth/logout');
@@ -18,10 +19,11 @@ const inflightExchanges = new Map();
 export function exchangeGoogleCode(code) {
   if (inflightExchanges.has(code)) return inflightExchanges.get(code);
   const request = apiClient
-    .post('/auth/google/exchange', { code, nonce: readGoogleNonce() ?? undefined })
+    .post('/auth/google/exchange', { code, nonce: readGoogleNonce() ?? undefined, codeVerifier: readGoogleVerifier() ?? undefined })
     .then(({ data }) => data)
     .finally(() => {
       clearGoogleNonce();
+      clearGoogleVerifier();
       inflightExchanges.delete(code);
     });
   inflightExchanges.set(code, request);

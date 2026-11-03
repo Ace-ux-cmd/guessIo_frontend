@@ -102,7 +102,7 @@ export default function Results() {
     LOSS: { title: 'Defeat', text: `${winner?.username || 'Someone'} cracked the code first and took the match.` },
     DRAW: { title: 'Draw', text: 'No round winner took the match.' },
     QUIT: { title: 'You forfeited', text: 'You left before the match finished. Forfeits can affect your rating.' },
-    CANCELLED: { title: 'Match cancelled', text: cancellation?.reason === 'INACTIVITY' ? 'Too many players went idle. No result.' : 'This match could not continue.' },
+    CANCELLED: { title: 'Match cancelled', text: cancellation?.reason === 'INACTIVITY' ? 'Too many players went idle. No result.' : cancellation?.reason === 'SERVER_RESTART' ? 'The server restarted for an update. No result, and nothing changed on your rating or points.' : 'This match could not continue.' },
   }[outcome];
   const showScore = result && !cancelled && outcome !== 'QUIT' && ordered.length > 0;
   const finished = outcome !== 'QUIT' && outcome !== 'CANCELLED';

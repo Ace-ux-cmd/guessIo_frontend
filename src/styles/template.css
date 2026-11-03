@@ -2836,32 +2836,6 @@ h1.custom-room-variant {
   text-transform: uppercase;
 }
 
-.leaderboard-tabs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.25rem;
-  margin: 0 0 0.35rem;
-  padding: 0.25rem;
-  border: 1px solid var(--line);
-  border-radius: 0.7rem;
-  background: rgba(8, 13, 28, 0.72);
-}
-.leaderboard-tab {
-  padding: 0.58rem;
-  border-radius: 0.45rem;
-  background: transparent;
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.leaderboard-tab.active {
-  background: var(--cyan);
-  color: #06121d;
-  box-shadow: 0 0 16px rgba(0, 229, 255, 0.2);
-}
-
 .podium.rank-variant {
   position: relative;
   min-height: 0;

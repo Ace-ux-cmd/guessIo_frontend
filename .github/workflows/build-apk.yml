@@ -1,0 +1,97 @@
+name: Build Android APK
+
+# Run by hand (Actions -> Build Android APK -> Run workflow). Needed only for the first
+# install and for native-level changes; everything else ships through the OTA bundle.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Check signing secrets
+        run: |
+          for v in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then echo "::error::Missing repository secret $v (see ANDROID_BUILD.md)"; exit 1; fi
+          done
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Pick versions
+        run: |
+          NATIVE_VERSION=$(node -p "require('./package.json').version")
+          # The bundle baked into the APK carries the newest published bundle version, so a fresh install is not "behind".
+          LATEST=$(gh api "repos/${{ github.repository }}/releases/latest" --jq .name 2>/dev/null || true)
+          echo "NATIVE_VERSION=$NATIVE_VERSION" >> "$GITHUB_ENV"
+          echo "BUNDLE_VERSION=${LATEST:-$NATIVE_VERSION}" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Build web bundle
+        run: npm run build
+        env:
+          VITE_APP_VERSION: ${{ env.BUNDLE_VERSION }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_WS_URL: ${{ vars.VITE_WS_URL }}
+          VITE_SUPPORT_GOOGLE_FORM_URL: ${{ vars.VITE_SUPPORT_GOOGLE_FORM_URL }}
+          VITE_OTA_REPO: ${{ github.repository }}
+
+      - name: Create the Android project
+        run: |
+          npx cap add android
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/guessio.keystore"
+          node scripts/prepare-android.mjs
+          npx cap sync android
+        env:
+          ANDROID_VERSION_NAME: ${{ env.NATIVE_VERSION }}
+          ANDROID_VERSION_CODE: ${{ github.run_number }}
+          KEYSTORE_PATH: ${{ runner.temp }}/guessio.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Build signed APK
+        working-directory: android
+        run: ./gradlew assembleRelease
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/guessio.keystore
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Collect APK
+        run: cp android/app/build/outputs/apk/release/app-release.apk guessIo.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: guessIo-apk
+          path: guessIo.apk
+
+      # A prerelease never counts as "latest", so the OTA check keeps finding the newest bundle.
+      - name: Publish APK download link
+        run: |
+          gh release delete apk-latest --cleanup-tag --yes || true
+          gh release create apk-latest guessIo.apk --prerelease --title "guessIo APK ${NATIVE_VERSION}" \
+            --notes "Direct install file. Set APP_APK_URL on the backend to https://github.com/${{ github.repository }}/releases/download/apk-latest/guessIo.apk"
+        env:
+          GH_TOKEN: ${{ github.token }}

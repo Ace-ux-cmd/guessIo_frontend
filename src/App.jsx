@@ -5,6 +5,7 @@ import RouteErrorBoundary from './components/ErrorBoundary';
 import AchievementUnlockedPrompt from './components/achievements/AchievementUnlockedPrompt';
 import InvitePrompt from './components/social/InvitePrompt';
 import Splash from './screens/Splash';
+import NativeBridge from './components/NativeBridge';
 import { PageSkeleton } from './components/ui/Feedback';
 import { useAuthStore } from './stores/authStore';
 import { useCurrentUser } from './hooks/useAuth';
@@ -120,6 +121,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <RouteErrorBoundary>
+      <NativeBridge />
       <AppBoot>
         <Suspense fallback={<PageSkeleton />}>
         <Routes>

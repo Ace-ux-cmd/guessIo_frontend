@@ -5,6 +5,7 @@ import App from './App';
 import './styles/ui.css';
 import './styles/app.css';
 import './styles/template.css';
+import { markBundleHealthy } from './lib/ota';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,3 +23,6 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </QueryClientProvider>
   </React.StrictMode>
 );
+
+// Once the UI is on screen the new bundle has proven itself; if it crashed before this, the updater rolls back.
+setTimeout(markBundleHealthy, 3000);

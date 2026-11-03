@@ -13,7 +13,7 @@ const TONE = {
  */
 export default function ConfirmDialog({
   open, tone = 'neutral', eyebrow, title, body, cancelLabel = 'Cancel', confirmLabel = 'Confirm',
-  onCancel, onConfirm, busy = false, locked = false, children,
+  onCancel, onConfirm, busy = false, confirmDisabled = false, locked = false, children,
 }) {
   const t = TONE[tone] || TONE.neutral;
   return (
@@ -24,7 +24,7 @@ export default function ConfirmDialog({
       {children}
       <div className="mt-5 flex gap-3">
         <button type="button" disabled={busy} onClick={onCancel} className="btn alt flex-1">{cancelLabel}</button>
-        <button type="button" disabled={busy} onClick={onConfirm} className={`${t.confirm} flex-1`}>{confirmLabel}</button>
+        <button type="button" disabled={busy || confirmDisabled} onClick={onConfirm} className={`${t.confirm} flex-1`}>{confirmLabel}</button>
       </div>
     </Sheet>
   );

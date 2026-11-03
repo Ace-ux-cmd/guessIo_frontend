@@ -2,103 +2,81 @@
 
 All notable changes to the guessIo frontend (web app) are documented in this file.
 
-## Unreleased
+## 2.0.0
 
-Needs the backend `Unreleased` release (migration `008_weekly_leaderboard.sql`). The three new systems appear only when the backend reports `weeklyLeaderboard`, `forfeitSuspension` or `friendInvites` on in `GET /config/features`; each defaults to off here.
-
-### Weekly leaderboard
-- Rating board shows the week and a countdown to Monday 00:00 UTC, "N more ranked matches to appear" for a player below the minimum (no rank is shown), and bots as normal entries
-- Dashboard shows the weekly recap (top 3) once per closed week, marked seen on the server. Podium entries open the read-only profile only when allowed
-- Ranked buttons are disabled with a clear message while the week rolls over, and reopen when the server says so (`ranked.status`, with a polling fallback)
-
-### Friend challenge
-- Friends: Challenge opens a private room and invites that friend. The room shows the invite as sent with a countdown, declined, expired (Invite again) or not sent with the reason
-- A signed-in player sees a prompt for an invite on any screen except a match, a search or a room: Accept joins by code, Decline tells the server. Only the latest invite shows, and it disappears when it is withdrawn or runs out
-
-### Skills
-- A skill shows as pending until its effect happens, is marked used only then, and returns to available if the server returns it
-
-### Fixes
-- Countdown hook now reads correctly on the first render of a new target
-
-### Removed
-- The survey card and its API calls
-
-## V2.0.0
-
-Needs backend V2.0.0 (migration `006_social_daily_skills_push.sql`). Every new system hides itself if the backend reports its feature flag off (`GET /config/features`).
-
-### Design update (v3.9)
-- Every screen except Home runs on a 13.5px root with compact buttons, keys, chips and avatars; Home keeps the full 16px size
-- Home: smaller logo and header controls, a faded Code Legends podium, and a Play button beside "Your last games" (the "Crack the code" card is gone)
-- New logo everywhere: in-app logo, splash, app icons, Apple touch icon and favicons
-- Profile: the edit pencil sits beside the name, with the username and join date under it; Leaderboard comes before Daily Challenge; Settings and Help sit side by side above Log out; Friends stays beside the name
-- Results: opponents' ratings read old to new in the colour of their change; Play and Home share one line with Match details below
-
-### Fixes
-- A rating never shows below 0: a player on 0 who loses reads 0 to 0 in plain colour, and your own line shows the change that really applied
-- Round win to results: the last round's result stays up for 3 seconds with "Match results in 3s" (no "next round" countdown for a round that decides the match), then the match results open. The live board is no longer painted for a frame in between, and a forfeit or cancellation goes straight to the results. Back skips the pause
-- Daily Challenge copy follows the new rule: the time to beat is your best finish from the last 7 days and resets after a week without one
-- Back, Forward, a refresh or a bookmark can no longer put a player in the matchmaking queue; only tapping Find match does. A found match replaces the matchmaking screen in history
-- Matchmaking only leaves the queue when it actually joined and no match was found (it used a stale value before)
-- Events from a previous match are ignored after the store is reset, so a late result cannot overwrite the next match
-- A guess is sent once: the keypad ignores a second send until the server answers, and unlocks itself after 5 seconds if no answer comes
-- Double taps on Forfeit and on the results buttons act once; the results page no longer flashes "Match cancelled" while leaving
-- The skill lobby is included in the periodic resync, so a missed event cannot leave it stuck
-- The "already used" digit warning no longer flickers on rapid taps
-- X-Ray Vision: the target sees "You're being monitored" (needs backend `skill.monitored`); it never says who
-
-### New design (v3.8)
-- Every screen moved to the v3.8 look: black ground, chunky offset-shadow cards, Kanit and Figtree type, one accent per card
-- Four-tab bottom bar (Home, Ranks, Matches, You)
-- New home with the Code Legends podium, the Daily entry and your last games
-- Leaderboard with a podium; tapping a name opens that player's options
-- Guest home, guest setup ("Set up the game", with the practice note above "Your name"), pass and play, how to play, help, round result, match results and match details restyled
-- Gameplay: avatar rows, 3-column keypad, countdown circle, forfeit and help in the header. A skipped turn adds nothing to the board
-- Number tiles no longer carry a dot in the top right corner
-- Error pages as big coloured words (Offline, 500, 404, Paused, Signed out, Suspended, Banned)
-- Matches list has no Private filter; the friends option is called Custom
+Needs backend 2.0.0 (migrations `006`, `007` and `008`). Each new system appears only when `GET /config/features` reports its flag on, and the app falls back to these defaults when the endpoint is unreachable: `friends`, `safety`, `daily`, `skills` and `push` on; `weeklyLeaderboard`, `forfeitSuspension` and `friendInvites` off.
 
 ### Friends and profiles
-- Friends list and requests, Add friends search (exact username or call sign), public player profiles (read-only stats and achievements, add or accept, block, report)
-- Friend challenge opens the Custom room flow
+- Friends screen (`/friends`) with a Friends tab (`n/10`) and a Requests tab: accept, decline, cancel, remove with confirmation, and a Challenge button. The Profile screen links to it, with a count of new requests
+- Add friends (`/friends/add`): search by exact username or call sign, minimum 2 characters, with Next and Previous page buttons. Each result shows Add, Requested, Accept, Friends or Unavailable. A closed inbox reads as Unavailable with no reason given
+- Public player profile (`/players/:username`): rating, points, win rate, matches, record and unlocked achievements, read-only. A private profile shows "This profile is private" and an unknown or blocked player shows "Player not found". Back returns to where the player came from
+- Player options sheet (view profile, add friend, block, report), opened by tapping a name on the leaderboard, the Home podium or the match results. A report from a result carries the match id, except for Custom matches
+- Profile links from the leaderboard, podium and results use the real username (they used the call sign before, which gave "not found")
 
 ### Social safety
-- Block with a plain explanation, report with reason and note, blocked players list with Unblock
-- Settings: private profile (hides you from search, closes your profile, stops requests), appear in search, who can send requests
+- Block with a plain explanation (any friendship ends, the player is not told, ranked matchmaking can still pair you), report with a reason and an optional note of up to 500 characters, and a blocked players list with Unblock in Settings
+- Settings, Privacy: Private profile, Appear in search, and Anyone can send friend requests
 
 ### Daily Challenge
-- Daily screen: time to beat, attempt flow with a server-owned timer, streak, 30-day calendar, reset countdown
+- Daily screen (`/daily`): time to beat (or "Set your time" for a first finish), the attempt flow with a timer counted from the server's start time and corrected for the gap between the device and server clocks, give up with confirmation, current and longest streak, a 30-day UTC calendar with a legend, and a countdown to the 00:00 UTC reset
+- Entry points: a Daily button on Home and a Daily Challenge link on Profile that shows the streak
+- Retry after a miss: when a finish does not beat the time to beat, a retry dialog opens with a challenging but friendly message, and the Daily page shows a Retry button. Retry asks for confirmation in a dialog that states the cost of 10 points, and is disabled when the player does not have enough points. If the player beats the time on a retry, that day turns from red to green in the 30-day streak calendar, and no further retry is offered
+- Copy follows the rule that the time to beat is the best finish from the last `targetWindowDays` (7) days and resets after that long without a finish
 
 ### In-match skills
-- Skill pick lobby (3 seconds per pick, everyone sees every pick), skill tab above the keypad, target picker with a 5 second timer for Freeze and X-Ray
-- Skills can only be used on your own turn. Reveal Position shows a pattern such as `___5` in a 5 second toast. X-Ray rows are drawn with dashed outlines
+- Skill pick lobby: turn-based, with a countdown for the active picker and every pick visible to everyone. Disabled for everyone except the active picker, and the lobby closes on its own after the last pick
+- Skill tab above the keypad with the states Use, on your turn, active, used and Extra Turn locked. Freeze and X-Ray Vision ask for a target when there is more than one opponent, with a 5 second picker that closes without spending the skill
+- Reveal Position shows its pattern (for example `___5`) in a 5 second toast. X-Ray rows are drawn with dashed outlines and are mirrored from the server's `skill.xray`. The frozen player sees a "Frozen" notice (5 seconds, or tap to close), and the X-Ray target sees "You're being monitored" without a name
+- A skill shows as active until its effect happens, is marked used only when the server sends `skill.consumed`, and returns to available with a message when the server sends `skill.returned`
+- Custom rooms: a Skill power-ups toggle at creation, a Skills on or off chip in the room, and a skill step before the match where the host continues once all seats are filled and every player picks a skill
+- How to Play has a skills step. New accounts see a floating welcome tip that points at the help button, and everyone sees a one-time "Introducing skills" pop-up
+
+### Weekly leaderboard (`weeklyLeaderboard`)
+- The rating board shows when the week resets and the time left, a locked rank card with "N more ranked matches to unlock your rank" for a player below the minimum (no rank is shown), and bots as normal entries
+- The Home screen shows the weekly recap (top 3, and your own place when you finished lower) once per closed week, marked seen on the server. Podium entries open the read-only profile only when allowed
+- While the week rolls over, the ranked option is disabled with a message and a blocking "Ranked is closed" dialog explains that Casual, Custom rooms and the Daily Challenge stay open. Ranked reopens when the server says so (`ranked.status`), with polling as a fallback (every 5 seconds while closed, otherwise every 15) and a fresh check at the moment you tap to search
+
+### Friend challenge (`friendInvites`)
+- Friends, Challenge opens a Custom room that invites that friend. The room shows the invite as sent with a countdown, declined, or expired (Invite again), or not sent with the reason (offline, in a match, invited a moment ago)
+- A signed-in player sees a prompt for an invite on any screen except a match, a search or a room. Accept joins by code with the invite id and Decline tells the server. Only the latest invite shows, and it disappears when it is withdrawn or runs out
 
 ### Notifications
-- Settings: notifications on this device, lost top 3 spot, friend activity, daily streak at risk (web push; needs `VAPID_*` on the backend)
+- Settings, Notifications: a device switch (web push, with a service worker at `/sw.js`) and three types: lost top 3 spot, friend activity, and daily streak at risk. Turning the device switch off turns the types off and locks them. The section appears only when `push` is on, and shows "This browser cannot receive notifications" in an unsupported browser. Needs `VAPID_*` configured on the backend
+
+### New design
+- All screens moved to the new template look: dark navy ground, new colour tokens, Space Grotesk for display and body text, and template styles in `src/styles/template.css` (see `TEMPLATE_UI_NOTES.md` for what was dropped, kept and changed on purpose)
+- Refreshed logo across the in-app wordmark, splash, `logo.png`, app icons, Apple touch icon and favicons. The page title, manifest name and theme colours are updated
+- Bottom bar: Home, Rank, Matches and Profile, with SVG icons
+- Home: Code Legends podium of the top three, your rating, win rate and matches, a Last games list with See all and Play now, the Daily entry and the help button
+- Leaderboard: rating only (the Points leaderboard and the Ratings and Points switch are removed), the top 3 on a podium, ranks to 20 and your own rank below the list
+- Results: your rating shown as old to new in the colour of the change, the same for opponents in Ranked, and Play again (Try again after a loss), Match details and Back home
+- Custom replaces "Private" in match labels and on the Play screen. Play and Matchmaking have updated copy (Find opponents, Create a room, Cancel search)
+- Shared sheets and pop-ups fade and slide in and out, can be centred, take an accent, make the rest of the page inert and return focus on close. The splash is a new boot screen, and the login, error, Help and guest screens are restyled
+- Guess rows show larger player avatars
+
+### Changed
+- Round end: the last round of a match no longer shows a "next round" countdown (it reads "Match results in Ns") and then opens the match results. A forfeit or cancellation goes straight to the results
+- A rating never shows below 0: a player on 0 who loses reads 0 to 0, and your own line shows the change that really applied
+- The match screen and matchmaking replace the current history entry when a match is found, so Back from the results cannot return to matchmaking or a room and queue again
+- Reconnect also restores a match that is in the `FOUND` state
+- Screens are lazy-loaded with one skeleton placeholder, the screens most sessions reach next are preloaded when the browser is idle, and the libraries are split into cached chunks (`react`, `data`, `socket`)
+- Dead code removed, including the unused `useUpdateProfile`, `useMatchDetails`, `getConfigForPlayerCount`, `outcomeInfo`, `MATCH_TYPES`, `DIFFICULTIES` and `POINTS_TABLE`
+- README updated (Custom rooms, v2.0.0 features and routes, tests, font), and the copyright holder name in `LICENSE` and the README changed
+
+### Fixes
+- A guess is sent once: the keypad ignores a second send until the server answers, and unlocks itself after 5 seconds if no answer comes
+- Double taps on Forfeit send one forfeit
+- Events from a previous match are ignored after the store is reset, except a snapshot, so a late result cannot overwrite the next match
+- Matchmaking only leaves the queue when it actually joined and no match was found (it used a stale value before)
+- An Extra Turn restarts the turn countdown for the second guess in a row
+- The "already used" digit warning clears its previous timer, so it no longer flickers on rapid taps
+- The countdown hook is derived on every render, so a new target reads correctly on its first render
 
 ### Version stamp
-- The bundle version is sent as `X-Client-Version` and on the socket handshake, so the backend knows whether a client understands skills. Over-the-air updating itself belongs to the mobile app, not this repository
+- The bundle version (`package.json`, or `VITE_APP_VERSION` in CI) is built in as `__APP_VERSION__` and sent as `X-Client-Version` on requests and as `clientVersion` on the socket handshake, so the backend can tell which bundle a client runs
 
-### After first testing
-- A new guess flips tile by tile from grey, so no colour shows before the flip; only your own row animates and the turn passes on straight away
-- Forfeit is a red door; the "?" is gone from the match screen
-- Screens that need several requests show one placeholder and appear complete; routes are split and preloaded
-- Profile links from the leaderboard, podium and results use the real username (they used the call sign, which gave "not found"); back goes where you came from
-- Reveal Position toast fixed (it was drawn outside the screen); skill picks are 10 seconds and the last pick waits out its window; Freeze tells the frozen player for 5 seconds
-- Home: coloured last 3 games with See all, a welcome ribbon for new accounts, a one-time skills introduction; How to play lists the skills
-- Profile: help and friends icons (with a request count) and settings at the top, log out at the bottom
-- Settings: turning notifications off on the device switches the alert types off and locks them
-- Leaderboard: top 20 plus your own rank at the bottom, always
-- Removed dead code and unused exports; main script 511 kB to 77 kB (libraries split into cached chunks)
-
-### Second round of changes
-- The skills introduction is now a pop-up overlay, and the welcome message for a new account is a small blue banner floating over the screen (no layout shift) that points at the help button. Every sheet and pop-up fades and slides in and out
-- The player menu shows Friends, Sent, Accept, Add friend or Unavailable, matching the relationship
-
-### Other
-- Results shows rating before and after (ranked) and the opponents' ratings
-- Frontend test suite (`npm test`)
+### Tests
+- A Vitest and Testing Library suite (`npm test`) with 12 test files covering screens, gameplay, skills and skill consumption, Custom room skills, the round-to-results flow, match navigation, player options, friend invites, the weekly leaderboard, results and profile
 
 ## V1.0 - Initial Release
 

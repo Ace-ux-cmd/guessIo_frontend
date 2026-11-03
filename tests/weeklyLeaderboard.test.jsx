@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 vi.mock('../src/api/leaderboards.api', () => ({
   getRatingLeaderboard: vi.fn(),
-  getPointsLeaderboard: vi.fn(),
   getWeeklyStatus: vi.fn(),
   getWeeklyRecap: vi.fn(),
   markWeeklyRecapSeen: vi.fn().mockResolvedValue(undefined),
@@ -67,6 +66,17 @@ describe('weekly leaderboard screen', () => {
     mount(<Leaderboards />);
     expect(await screen.findByText('7')).toBeTruthy();
     expect(screen.queryByTestId('locked-rank')).toBeNull();
+  });
+
+  it('is a ratings board only: no switch between boards, and no points anywhere', async () => {
+    lb.getRatingLeaderboard.mockResolvedValue({ items, limit: 20, week, me: null });
+    mount(<Leaderboards />);
+    await screen.findByText('Nova');
+    expect(screen.queryByRole('tablist')).toBeNull();
+    expect(screen.queryByRole('tab')).toBeNull();
+    expect(screen.queryByText(/points/i)).toBeNull();
+    expect(screen.getAllByText('rating').length).toBeGreaterThan(0);
+    expect(lb.getRatingLeaderboard).toHaveBeenCalledTimes(1);
   });
 
   it('lists a bot but does not make it tappable', async () => {

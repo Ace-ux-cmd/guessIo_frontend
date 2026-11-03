@@ -15,9 +15,19 @@ self.addEventListener('push', (event) => {
   );
 });
 
+// Only same-origin paths are ever opened, whatever the payload says.
+function safeTarget(raw) {
+  try {
+    const target = new URL(raw || '/dashboard', self.location.origin);
+    return target.origin === self.location.origin ? target.href : new URL('/dashboard', self.location.origin).href;
+  } catch {
+    return new URL('/dashboard', self.location.origin).href;
+  }
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || '/dashboard';
+  const url = safeTarget(event.notification.data && event.notification.data.url);
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
