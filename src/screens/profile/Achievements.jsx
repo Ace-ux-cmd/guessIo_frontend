@@ -1,22 +1,36 @@
 import { Link } from 'react-router-dom';
-import BottomNav from '../../components/ui/BottomNav';
 import Icon from '../../components/ui/Icon';
-import AchievementBadge from '../../components/achievements/AchievementBadge';
-import { LoadingScreen, ErrorState } from '../../components/ui/Feedback';
+import { AchievementMark, isFlawlessAchievement } from '../../components/achievements/AchievementBadge';
+import { PageSkeleton, ErrorState } from '../../components/ui/Feedback';
 import { useAchievements } from '../../hooks/useAuth';
 
 function Row({ a }) {
+  const when = a.unlockedAt ? new Date(a.unlockedAt).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) : null;
   return (
-    <div className="surface rounded-xl border border-line p-4">
-      <div className="flex items-center gap-3">
-        <AchievementBadge icon={a.icon} unlocked={a.unlocked} />
-        <div className="flex-1 min-w-0">
-          <div className="font-semibold">{a.title}</div>
-          <div className="text-sm text-mute">{a.description}</div>
+    <article className={`achievement achievements-variant${a.unlocked ? '' : ' locked'}`}>
+      <span className="badge achievements-variant" aria-hidden="true">
+        {a.unlocked || isFlawlessAchievement(a.key)
+          ? <AchievementMark achievementKey={a.key} icon={a.icon} className="h-5 w-5" />
+          : <Icon name="lock" className="h-4 w-4" />}
+      </span>
+      <span className="achievement-copy"><strong>{a.title}</strong><span>{a.description}</span></span>
+      <span className="status">{a.unlocked ? (when ? `Done ${when}` : 'Done') : 'Locked'}</span>
+    </article>
+  );
+}
+
+function Shell({ children }) {
+  return (
+    <main className="app" style={{ display: 'flex', flexDirection: 'column' }}>
+      <header className="topbar with-back leading">
+        <Link to="/profile" replace aria-label="Back" className="back">&larr;</Link>
+        <div>
+          <p className="eyebrow">Profile</p>
+          <h1>Achievements</h1>
         </div>
-        {a.unlocked && <Icon name="check" className="w-4 h-4 text-g" />}
-      </div>
-    </div>
+      </header>
+      {children}
+    </main>
   );
 }
 
@@ -27,27 +41,48 @@ export default function Achievements() {
   const locked = list.filter((a) => !a.unlocked);
   const pct = list.length ? Math.round((unlocked.length / list.length) * 100) : 0;
 
+  if (isLoading) return <PageSkeleton cards={5} />;
+
   return (
-    <>
-      <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-24">
-        <header className="flex items-center gap-1 px-4 pt-5">
-          <Link to="/profile" replace className="p-2 text-mute" aria-label="Back"><Icon name="back" /></Link>
-        </header>
-        {isLoading ? <LoadingScreen /> : isError ? (
-          <div className="px-5"><ErrorState description="Could not load achievements." /></div>
+    <Shell>
+      <div className="content achievements-variant">
+        {isError ? (
+          <ErrorState description="Could not load achievements." />
         ) : (
-          <section className="px-5 mt-7">
-            <div className="flex items-end justify-between">
-              <h1 className="text-xl font-bold">Achievements</h1>
-              <span className="text-sm text-mute tnum">{unlocked.length} of {list.length} unlocked</span>
-            </div>
-            <div className="mt-3 h-2 rounded bg-s2 overflow-hidden"><span className="block h-full bg-g" style={{ width: `${pct}%` }} /></div>
-            {unlocked.length > 0 && (<><h2 className="mt-6 mb-2 text-xs font-semibold text-mute">Unlocked</h2><div className="space-y-2.5">{unlocked.map((a) => <Row key={a.key} a={a} />)}</div></>)}
-            {locked.length > 0 && (<><h2 className="mt-6 mb-2 text-xs font-semibold text-mute">Locked</h2><div className="space-y-2.5">{locked.map((a) => <Row key={a.key} a={a} />)}</div></>)}
-          </section>
+          <>
+            <section className="progress-card" aria-label="Achievement progress">
+              <div className="progress-copy">
+                <strong>Achievement progress</strong>
+                <span className="tnum">{unlocked.length} / {list.length}</span>
+              </div>
+              <div
+                className="progress-track"
+                style={{ '--pct': `${pct}%` }}
+                role="progressbar"
+                aria-valuenow={unlocked.length}
+                aria-valuemin={0}
+                aria-valuemax={list.length}
+                aria-label="Achievements unlocked"
+              />
+              <p>{locked.length > 0 ? 'Keep cracking codes to unlock the next badge.' : 'Every badge unlocked.'}</p>
+            </section>
+
+            {unlocked.length > 0 && (
+              <section className="section" aria-labelledby="unlocked-title">
+                <h2 className="section-title" id="unlocked-title">Unlocked</h2>
+                <div className="achievement-list achievements-variant">{unlocked.map((a) => <Row key={a.key} a={a} />)}</div>
+              </section>
+            )}
+
+            {locked.length > 0 && (
+              <section className="section" aria-labelledby="locked-title">
+                <h2 className="section-title" id="locked-title">Next milestones</h2>
+                <div className="achievement-list achievements-variant">{locked.map((a) => <Row key={a.key} a={a} />)}</div>
+              </section>
+            )}
+          </>
         )}
-      </main>
-      <BottomNav active="/profile" />
-    </>
+      </div>
+    </Shell>
   );
 }

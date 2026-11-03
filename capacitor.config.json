@@ -1,0 +1,17 @@
+{
+  "appId": "io.guessio.app",
+  "appName": "GuessIo",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": false,
+      "resetWhenUpdate": true
+    }
+  }
+}

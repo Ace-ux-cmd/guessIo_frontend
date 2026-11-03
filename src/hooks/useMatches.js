@@ -11,12 +11,3 @@ export function useMatches({ page = 1, pageSize = 20, type, difficulty } = {}) {
     staleTime: 30_000,
   });
 }
-
-export function useMatchDetails(matchId) {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
-  return useQuery({
-    queryKey: ['match', matchId],
-    queryFn: () => matchesApi.getMatchDetails(matchId),
-    enabled: isAuthenticated && Boolean(matchId),
-  });
-}

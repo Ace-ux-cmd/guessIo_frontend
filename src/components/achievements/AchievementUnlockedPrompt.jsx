@@ -20,6 +20,8 @@ const QUIET_ROUTES = new Set([
   '/leaderboards',
   '/settings',
   '/support',
+  '/daily',
+  '/friends',
 ]);
 
 // Belt and braces with the route check: never interrupt a queue, a room or a
@@ -58,13 +60,13 @@ export default function AchievementUnlockedPrompt() {
   }
 
   return (
-    <Sheet open locked showClose={false} labelledBy="achievement-unlocked-title">
-      <div className="text-xs font-semibold text-g">Congratulations</div>
-      <div id="achievement-unlocked-title" className="font-bold text-lg mt-0.5">{title}</div>
+    <Sheet open locked showClose={false} labelledBy="achievement-unlocked-title" accent="g">
+      <div className="text-xs font-bold uppercase tracking-wide text-g">Congratulations</div>
+      <div id="achievement-unlocked-title" className="mt-0.5 font-display text-2xl font-bold">{title}</div>
       <ul className="mt-3 space-y-2.5 overflow-y-auto" style={{ maxHeight: '40vh' }}>
         {pending.map((achievement) => (
-          <li key={achievement.key} className="surface rounded-xl border border-line p-3 flex items-center gap-3">
-            <AchievementBadge icon={achievement.icon} unlocked />
+          <li key={achievement.key} className="card a-g flex items-center gap-3 p-3">
+            <AchievementBadge achievementKey={achievement.key} icon={achievement.icon} unlocked />
             <div className="flex-1 min-w-0">
               <div className="font-semibold">{achievement.title}</div>
               <div className="text-sm text-mute">{achievement.description}</div>
@@ -76,14 +78,14 @@ export default function AchievementUnlockedPrompt() {
         <button
           type="button"
           onClick={handleOk}
-          className="flex-1 h-11 rounded-md border border-line flex items-center justify-center text-sm font-semibold"
+          className="btn alt flex-1"
         >
           Ok
         </button>
         <button
           type="button"
           onClick={handleViewAchievements}
-          className="flex-1 h-11 rounded-md bg-g text-bg flex items-center justify-center text-sm font-bold"
+          className="btn flex-1"
         >
           Go to achievements
         </button>

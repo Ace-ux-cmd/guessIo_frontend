@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
 import Button from '../../components/ui/Button';
@@ -107,22 +107,38 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activePlayerId, round?.roundNumber]);
 
+  // The match is over and the final round's result has been dismissed. From
+  // this point nothing but the results screen may be painted (see the guard
+  // below), so the board never flashes between the two.
+  const leavingToResults = match.status === 'COMPLETED' && !pendingRoundAdvance;
+
+  const goToResults = useCallback(() => {
+    const p1 = match.players[0];
+    const p2 = match.players[1];
+    const winner = match.players.find((p) => p.id === match.winnerId);
+    const params = new URLSearchParams({
+      winnerId: match.winnerId || '',
+      winnerName: winner?.name || '',
+      mode,
+      rounds: String(match.rounds.length),
+      score: `${p1.roundsWon}-${p2.roundsWon}`,
+    });
+    navigate(`/results/guest?${params.toString()}`, { replace: true });
+  }, [match, mode, navigate]);
+
+  // Safety net for any path that reaches the completed state without the
+  // Continue button (the button itself navigates immediately).
   useEffect(() => {
-    // Only leave once the final round's result pause has been dismissed.
-    if (match.status === 'COMPLETED' && !pendingRoundAdvance) {
-      const p1 = match.players[0];
-      const p2 = match.players[1];
-      const winner = match.players.find((p) => p.id === match.winnerId);
-      const params = new URLSearchParams({
-        winnerId: match.winnerId || '',
-        winnerName: winner?.name || '',
-        mode,
-        rounds: String(match.rounds.length),
-        score: `${p1.roundsWon}-${p2.roundsWon}`,
-      });
-      navigate(`/results/guest?${params.toString()}`, { replace: true });
-    }
-  }, [match.status, match.winnerId, match.players, match.rounds.length, mode, navigate, pendingRoundAdvance]);
+    if (leavingToResults) goToResults();
+  }, [leavingToResults, goToResults]);
+
+  // Continue on the round result. For the last round this goes straight to the
+  // match results instead of waiting for a render of the live board first.
+  function handleRoundContinue() {
+    const matchOver = match.status === 'COMPLETED';
+    advanceToNextRound();
+    if (matchOver) goToResults();
+  }
 
   const players = useMemo(
     () => match.players.map((p) => ({ userId: p.id, username: names[p.id] || p.name })),
@@ -132,6 +148,8 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
   const score = Object.fromEntries(match.players.map((p) => [p.id, p.roundsWon]));
 
   if (!round) return null;
+  // Same guard as online Gameplay: never paint the live board while the route changes.
+  if (leavingToResults) return null;
 
   const codeLength = round.codeLength;
   const isMyTurn = !isPassAndPlay ? activePlayerId === humanId : true; // pass & play: whoever holds it
@@ -152,9 +170,9 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
   if (isPassAndPlay && passInterstitial && !pendingRoundAdvance) {
     return (
       <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col items-center justify-center px-6 text-center">
-        <div className="w-12 h-12 rounded-full bg-s2 text-g flex items-center justify-center"><Icon name="users" /></div>
-        <h1 className="mt-4 text-2xl font-bold">Pass the device</h1>
-        <p className="mt-1 text-mute">Hand it to <b className="text-ink">{activeName}</b>, then tap when ready.</p>
+        <div className="grid h-14 w-14 place-items-center rounded-full border border-g bg-s1 text-g"><Icon name="users" /></div>
+        <h1 className="mt-4 font-display text-4xl font-bold">Pass the device</h1>
+        <p className="mt-2 text-mute">Hand it to <b className="text-white">{activeName}</b>, then tap when ready.</p>
         <div className="mt-6 w-full"><Button onClick={() => setPassInterstitial(false)}>{activeName}, I&apos;m ready</Button></div>
       </main>
     );
@@ -180,9 +198,9 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
       allRounds: match.rounds,
     };
     return (
-      <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-6">
-        <div className="bg-s2 text-mute text-sm font-semibold text-center py-2 px-4">Practice match. Progress is not saved.</div>
-        <RoundResult result={roundResult} players={players} myUserId={humanId} onCountdownComplete={advanceToNextRound} manualAdvance />
+      <main className="app">
+        <p className="practice-note">Practice match. Progress is not saved.</p>
+        <RoundResult result={roundResult} players={players} myUserId={humanId} onCountdownComplete={handleRoundContinue} manualAdvance />
       </main>
     );
   }
@@ -191,27 +209,26 @@ function GuestGameplayActive({ mode, difficulty, roundTier, playerNames, resumeF
 
   return (
     <>
-      <main className="gameplay-main mx-auto w-full max-w-[430px] h-screen flex flex-col">
-        <div className="bg-s2 text-mute text-sm font-semibold text-center py-2 px-4">Practice match. Progress is not saved.</div>
-        <header className="flex items-center justify-between px-4 pt-3">
-          <span className="text-sm text-mute">Round {round.roundNumber} of {MAX_ROUNDS_PER_MATCH}</span>
-          <span className="text-sm text-mute tnum">Guess {Math.min(round.guessLog.length + 1, round.guessLimit || round.guessLog.length + 1)}{round.guessLimit ? ` of ${round.guessLimit}` : ''}</span>
-          <button type="button" onClick={() => setQuitOpen(true)} className="p-2 -mr-2 text-mute" aria-label="Quit match">
-            <Icon name="flag" />
-          </button>
+      <main className="app gameplay-live">
+        <p className="practice-note">Practice match. Progress is not saved.</p>
+        <header className="game-header">
+          <div>
+            <p className="round-label">Round {round.roundNumber} of {MAX_ROUNDS_PER_MATCH}</p>
+            <span className="guess-count">Guess <strong>{Math.min(round.guessLog.length + 1, round.guessLimit || round.guessLog.length + 1)}</strong>{round.guessLimit ? <> of <strong>{round.guessLimit}</strong></> : null}</span>
+          </div>
+          <button type="button" onClick={() => setQuitOpen(true)} className="forfeit" aria-label="Leave match">&#9873;</button>
         </header>
 
         <Scoreboard players={players} score={score} activePlayerId={activePlayerId} myUserId={isPassAndPlay ? activePlayerId : humanId} activeNote="thinking" />
 
-        <div className="board-scroll flex-1 overflow-y-auto px-4 py-3 space-y-2">
+        <section className="history" aria-label="Guess board" aria-live="polite">
           <GuessBoard
             guessLog={round.guessLog}
             players={players}
             difficulty={difficulty}
             myUserId={isPassAndPlay ? activePlayerId : humanId}
-            freshIndex={round.guessLog.length - 1}
           />
-        </div>
+        </section>
 
         <TurnPanel myTurn={isMyTurn} title={title} subtitle="One shared code. First to crack it wins the round.">
           <GuessInput length={codeLength} value={isMyTurn ? draft : ''} onChange={setDraft} onSubmit={handleSubmit} disabled={!isMyTurn} />

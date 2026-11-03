@@ -47,20 +47,20 @@ export default function ConnectionBanner({ alwaysShow = false }) {
   const copy = COPY[status];
   if (status === 'reconnecting') {
     return (
-      <div role="status" className="flex items-center gap-2 rounded-md bg-warn/20 text-warn p-3 text-sm font-semibold">
+      <div role="status" className="card flat a-o flex items-center gap-2 p-3 text-sm font-bold">
         <span className="w-2 h-2 rounded-full bg-warn animate-pulse" />{copy}
       </div>
     );
   }
   if (status === 'offline') {
     return (
-      <div role="status" className="flex items-center gap-2 rounded-md bg-bad/20 text-bad p-3 text-sm font-semibold">
+      <div role="status" className="card flat a-r flex items-center gap-2 p-3 text-sm font-bold">
         <Icon name="wifioff" className="w-4 h-4" />{copy}
         <button
           type="button"
           onClick={handleReconnect}
           disabled={retrying}
-          className="ml-auto h-8 px-3 rounded-md bg-bad text-white text-xs font-bold disabled:opacity-60"
+          className="btn danger ml-auto !min-h-9 !px-3 !text-xs"
         >
           {retrying ? 'Connecting…' : 'Reconnect'}
         </button>
@@ -68,7 +68,7 @@ export default function ConnectionBanner({ alwaysShow = false }) {
     );
   }
   return (
-    <div role="status" className="flex items-center gap-2 rounded-md bg-g/20 text-g p-3 text-sm font-semibold">
+    <div role="status" className="card flat a-g flex items-center gap-2 p-3 text-sm font-bold">
       <span className="w-2 h-2 rounded-full bg-g" />{copy}
     </div>
   );

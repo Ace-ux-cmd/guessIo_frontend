@@ -1,25 +1,28 @@
-import { useState } from 'react';
+import { Fragment, useRef, useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
-import Button from '../../components/ui/Button';
-import Icon from '../../components/ui/Icon';
 import Avatar from '../../components/ui/Avatar';
+import PlayerSheet from '../../components/social/PlayerSheet';
 import { useMatchStore } from '../../stores/matchStore';
 import { useAuthStore } from '../../stores/authStore';
-import { matchTypeLabel, signed } from '../../lib/format';
+import { matchTypeLabel, ratingTransition, signed } from '../../lib/format';
 
-// Headline treatment per outcome (09 / 09.2 / 09.3 / 09.4 / 09.5).
-const META = {
-  WIN: { title: 'Victory', titleCls: 'text-g text-6xl', bg: 'bg-gradient-to-b from-g/25 to-transparent' },
-  LOSS: { title: 'Defeat', titleCls: 'text-5xl', bg: '' },
-  DRAW: { title: 'Draw', titleCls: 'text-ink text-5xl', bg: 'bg-gradient-to-b from-line to-transparent' },
-  QUIT: { title: 'Forfeit', titleCls: 'text-bad text-5xl', bg: '' },
-  CANCELLED: { title: 'Cancelled', titleCls: 'text-ink text-5xl', bg: 'bg-gradient-to-b from-line to-transparent' },
-};
+const row = (label, value, tone = '') => (
+  <div className="detail">
+    <span>{label}</span>
+    <strong className={`tnum ${tone}`}>{value}</strong>
+  </div>
+);
 
 export default function Results() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const store = useMatchStore();
+  const [selected, setSelected] = useState(null);
+  // Set by the first tap on any exit button. A second tap is ignored, and the page
+  // stops rendering result content (reset() empties the store, which would otherwise
+  // flash the "Match cancelled" view for a frame before the route changes).
+  const [leaving, setLeaving] = useState(false);
+  const leavingRef = useRef(false);
 
   // A refresh empties the match store, leaving nothing to show. Checked once
   // at mount so the reset() in the buttons below cannot trigger this redirect.
@@ -32,8 +35,8 @@ export default function Results() {
   const result = store.matchResult;
   const cancellation = store.cancellation;
 
-  // QUIT is its own outcome only when *I* forfeited - an opponent forfeiting
-  // still reads as a WIN for me, with a note below.
+  // QUIT is its own outcome only when *I* forfeited. An opponent forfeiting
+  // still reads as a WIN for me, with a note.
   const iForfeited = result?.forfeitedUserId === user?.id;
   const opponentForfeited = result?.forfeitedUserId && result.forfeitedUserId !== user?.id;
   const wonByDisconnect = opponentForfeited && result?.endReason === 'DISCONNECT_TIMEOUT';
@@ -44,15 +47,18 @@ export default function Results() {
       : iForfeited ? 'QUIT'
         : !result.winnerId ? 'DRAW'
           : result.winnerId === user?.id ? 'WIN' : 'LOSS';
-  const meta = META[outcome] || { title: '—', titleCls: 'text-5xl', bg: '' };
 
-  // Private-room matches are never persisted server-side, so no /history/:id.
+  // Custom (private) matches are never saved and never change rating.
   const isPrivate = store.config?.matchType === 'PRIVATE';
+  const isRanked = store.config?.matchType === 'RANKED';
   const winner = result && store.players.find((p) => p.userId === result.winnerId);
+  const forfeiter = store.players.find((p) => p.userId === result?.forfeitedUserId);
 
   // My score first, then everyone else's, e.g. "2 - 1".
   const ordered = [...store.players].sort((a, b) => (a.userId === user?.id ? -1 : b.userId === user?.id ? 1 : 0));
   const scoreLine = result ? ordered.map((p) => result.finalScore?.[p.userId] ?? 0).join(' - ') : '';
+  const me = store.players.find((p) => p.userId === user?.id);
+  const opponents = store.players.filter((p) => p.userId !== user?.id);
 
   const ratingDelta = result?.ratingChanges?.[user?.id];
   // The server scores a lone remaining player at 0 on purpose, so an opponent
@@ -60,108 +66,149 @@ export default function Results() {
   const noRatingFromForfeit = outcome === 'WIN' && opponentForfeited && ratingDelta === 0;
   const points = !isPrivate ? result?.pointsEarned?.[user?.id] : undefined;
   const cfg = store.config;
-  const context = outcome === 'QUIT' || outcome === 'CANCELLED'
-    ? 'Match ended'
-    : `${matchTypeLabel(cfg?.matchType)}, ${store.players.length} players, ${cfg?.difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}`;
+  const context = `${matchTypeLabel(cfg?.matchType)}, ${store.players.length} players, ${cfg?.difficulty === 'HARDCORE' ? 'Hardcore' : 'Standard'}`;
+  const myTransition = isRanked && ratingDelta !== undefined ? ratingTransition(me?.rating, ratingDelta) : null;
+  const ratingLine = myTransition ? `${myTransition.text} (${signed(myTransition.change)})` : null;
+  // Every opponent shows old to new, coloured by their own change. The server
+  // sends a change for everyone in a ranked match, including players who left.
+  const opponentRatings = isRanked
+    ? opponents.map((o) => ({ player: o, transition: ratingTransition(o.rating, result?.ratingChanges?.[o.userId]) }))
+    : [];
 
-  const sub = outcome === 'QUIT' ? 'You left before the match finished'
-    : outcome === 'CANCELLED' ? (cancellation?.reason === 'INACTIVITY' ? 'Too many players went idle. No result.' : 'This match could not continue.')
-      : outcome === 'DRAW' ? 'No round winner took the match'
-        : outcome === 'WIN' ? (opponentForfeited ? `${store.players.find((p) => p.userId === result.forfeitedUserId)?.username || 'An opponent'} left the match` : 'You took the match')
-          : outcome === 'LOSS' ? `${winner?.username || 'Someone'} took the match` : '';
-
-  function playAgain() { store.reset(); navigate('/play', { replace: true }); }
-  function goHome() { store.reset(); navigate('/dashboard', { replace: true }); }
-  function viewDetails() {
-    if (!store.matchId || isPrivate) return goHome();
-    const matchId = store.matchId;
+  // Every exit goes through here: once, and with navigation first so the route has
+  // already changed by the time the store empties.
+  function leave(to) {
+    if (leavingRef.current) return;
+    leavingRef.current = true;
+    setLeaving(true);
+    navigate(to, { replace: true });
     store.reset();
-    navigate(`/history/${matchId}`, { replace: true });
+  }
+  const playAgain = () => leave('/play');
+  const goHome = () => leave('/dashboard');
+  function viewDetails() {
+    if (!store.matchId || isPrivate) return leave('/dashboard');
+    // Keep the result in history and in the match store so Details can return
+    // here without briefly restoring the previous live-game route.
+    navigate(`/history/${store.matchId}`, { state: { from: '/results' } });
   }
 
   if (noMatchToShow) return <Navigate to="/dashboard" replace />;
+  if (leaving) return null;
+
+  const tone = outcome === 'WIN' ? 'win' : outcome === 'LOSS' || outcome === 'QUIT' ? 'loss' : outcome === 'DRAW' ? 'draw' : 'void';
+  const heroCopy = {
+    WIN: { title: 'Victory', text: opponentForfeited ? `${forfeiter?.username || 'An opponent'} left the match.` : 'You outsmarted the table and won the match.' },
+    LOSS: { title: 'Defeat', text: `${winner?.username || 'Someone'} cracked the code first and took the match.` },
+    DRAW: { title: 'Draw', text: 'No round winner took the match.' },
+    QUIT: { title: 'You forfeited', text: 'You left before the match finished. Forfeits can affect your rating.' },
+    CANCELLED: { title: 'Match cancelled', text: cancellation?.reason === 'INACTIVITY' ? 'Too many players went idle. No result.' : cancellation?.reason === 'SERVER_RESTART' ? 'The server restarted for an update. No result, and nothing changed on your rating or points.' : 'This match could not continue.' },
+  }[outcome];
+  const showScore = result && !cancelled && outcome !== 'QUIT' && ordered.length > 0;
+  const finished = outcome !== 'QUIT' && outcome !== 'CANCELLED';
 
   return (
-    <main className="mx-auto w-full max-w-[430px] min-h-screen flex flex-col pb-6">
-      <section className={`relative px-5 pt-14 pb-8 text-center ${meta.bg}`}>
-        <div className="text-sm text-mute">{context}</div>
-        <h1 className={`mt-2 font-display font-black animate-pop ${meta.titleCls}`}>{meta.title}</h1>
-        <p className="mt-2 text-mute">{sub}</p>
+    <main className="app">
+      <header className="topbar">
+        <div>
+          <p className="eyebrow">Match result</p>
+          <p className="round-copy">{finished ? context : 'Match ended'}</p>
+        </div>
+        <span className="round-copy">Final</span>
+      </header>
 
+      <section className={`hero ${tone}`} aria-labelledby="result-title">
+        {(outcome === 'WIN' || outcome === 'LOSS' || outcome === 'DRAW') && (
+          <div className={`avatar-ring ${tone}`}>
+            <Avatar name={user?.username} url={user?.avatarUrl} size={72} />
+          </div>
+        )}
+        <h1 id="result-title">{heroCopy.title}</h1>
+        <p>{heroCopy.text}</p>
         {(wonByDisconnect || wonByOpponentQuit) && (
-          <div className="mt-3 inline-flex items-center gap-2 text-sm text-warn font-semibold">
-            <Icon name="alert" className="w-4 h-4" />{wonByDisconnect ? 'Won by opponent disconnect' : 'Won: opponent forfeited'}
-          </div>
-        )}
-        {outcome === 'QUIT' && (
-          <div className="mt-3 inline-flex items-center gap-2 text-sm text-warn font-semibold">
-            <Icon name="alert" className="w-4 h-4" />Forfeits can affect your rating
-          </div>
-        )}
-
-        {result && outcome !== 'QUIT' && scoreLine && (
-          <div className="mt-2 font-display font-black text-5xl tnum">{scoreLine}</div>
-        )}
-
-        {(ratingDelta !== undefined || points !== undefined) && (
-          <div className="mt-6 flex justify-center gap-8">
-            {ratingDelta !== undefined && (
-              <div>
-                <div className="text-xs text-mute">Rating</div>
-                <div className={`text-2xl font-bold tnum ${ratingDelta > 0 ? 'text-g' : ratingDelta < 0 ? 'text-bad' : 'text-mute'}`}>{signed(ratingDelta)}</div>
-              </div>
-            )}
-            {points !== undefined && (
-              <div>
-                <div className="text-xs text-mute">Points</div>
-                <div className="text-2xl font-bold tnum">{signed(points)}</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {noRatingFromForfeit && (
-          <p className="mt-4 mx-auto max-w-[30ch] text-xs text-mute">
-            No rating change when all your opponents leave, to prevent rating farming.
-            {' '}Think this was a mistake? <Link to="/support" className="text-g font-semibold">Report it</Link>.
-          </p>
+          <p role="status" style={{ color: 'var(--amber)', fontWeight: 700 }}>{wonByDisconnect ? 'Won by opponent disconnect.' : 'Won: opponent forfeited.'}</p>
         )}
       </section>
 
-      <section className="px-5">
-        {result && !cancelled && outcome !== 'QUIT' && (
+      {showScore && (
+        <section
+          className={`score-panel ${tone}`}
+          aria-label="Final match score"
+          style={{ gridTemplateColumns: ordered.flatMap((_, i) => (i === 0 ? ['minmax(0, 1fr)'] : ['1px', 'minmax(0, 1fr)'])).join(' ') }}
+        >
+          {ordered.map((p, i) => (
+            <Fragment key={p.userId}>
+              {i > 0 && <div className="score-divider" aria-hidden="true" />}
+              <div className="score-block">
+                <strong className="tnum">{result.finalScore?.[p.userId] ?? 0}</strong>
+                <span>{p.userId === user?.id ? 'You' : p.username}</span>
+              </div>
+            </Fragment>
+          ))}
+        </section>
+      )}
+
+      <section className="breakdown" aria-labelledby="breakdown-title">
+        {showScore && (
           <>
-            <h2 className="font-bold mb-2">Rounds won</h2>
-            <div className="space-y-2">
-              {ordered.map((p) => {
-                const won = result.finalScore?.[p.userId] ?? 0;
-                return (
-                  <div key={p.userId} className="flex items-center gap-3 rounded-md bg-s1 p-3">
-                    <Avatar name={p.username} size={32} url={p.avatarUrl} />
-                    <span className={`flex-1 font-semibold ${p.userId === result.winnerId ? 'text-g' : ''}`}>
-                      {p.username}{p.userId === user?.id && <span className="ml-2 text-xs text-mute font-normal">You</span>}
-                    </span>
-                    <span className="font-display font-bold tnum">{won}</span>
-                  </div>
-                );
-              })}
+            <div className="heading">
+              <h2 id="breakdown-title">Rounds won</h2>
+              <span>Final score</span>
             </div>
+            {ordered.map((p) => {
+              const won = result.finalScore?.[p.userId] ?? 0;
+              const mine = p.userId === user?.id;
+              return (
+                <div key={p.userId} className={`round-row${p.userId === result.winnerId ? ' win' : ''}`}>
+                  <span>
+                    {mine ? (
+                      <span className="round-name">{p.username} (you)</span>
+                    ) : (
+                      <button type="button" className="round-name rank-link" onClick={() => setSelected(p)} aria-label={`${p.username}, player options`}>{p.username}</button>
+                    )}
+                  </span>
+                  <span className="round-result tnum">{won} {won === 1 ? 'round' : 'rounds'}</span>
+                </div>
+              );
+            })}
           </>
         )}
 
+        {(ratingLine || points !== undefined) && (
+          <>
+            <div className="heading" style={{ marginTop: '1rem' }}>
+              <h2>Match rewards</h2>
+            </div>
+            <div className="details" style={{ marginTop: 0 }}>
+              {ratingLine && row('Rating', ratingLine, myTransition.tone)}
+              {opponentRatings.map(({ player, transition }) => (
+                <Fragment key={player.userId}>
+                  {row(opponentRatings.length === 1 ? 'Opponent rating' : `${player.username} rating`, transition ? transition.text : '-', transition?.tone)}
+                </Fragment>
+              ))}
+              {points !== undefined && row('Points', signed(points))}
+            </div>
+          </>
+        )}
+        {noRatingFromForfeit && (
+          <p className="helper">
+            No rating change when all your opponents leave, to prevent rating farming. Think this was a mistake? <Link to="/support" className="rank-link" style={{ color: 'var(--lime)' }}>Report it</Link>.
+          </p>
+        )}
         {cancellation && cancellation.reason === 'INACTIVITY' && (
-          <p className="mt-4 text-sm text-mute text-center">
+          <p className="helper">
             No one submitted a valid guess for two full rotations.
             {!isPrivate && ' A rating and points penalty was applied to all remaining players.'}
           </p>
         )}
-
-        <div className="mt-7 space-y-2.5">
-          {outcome !== 'QUIT' && outcome !== 'CANCELLED' && <Button onClick={playAgain}>{outcome === 'LOSS' ? 'Try again' : 'Play again'}</Button>}
-          {store.matchId && !isPrivate && <Button variant="outline" onClick={viewDetails}>Match details</Button>}
-          <Button variant={outcome === 'QUIT' || outcome === 'CANCELLED' ? 'primary' : 'text'} onClick={goHome}>Back home</Button>
-        </div>
       </section>
+
+      <footer className="actions results-victory-variant">
+        {finished && <button type="button" className="action results-victory-variant primary" onClick={playAgain}>{outcome === 'LOSS' ? 'Try again' : 'Play again'}</button>}
+        {store.matchId && !isPrivate && <button type="button" className="action results-victory-variant secondary" onClick={viewDetails}>Match details</button>}
+        <button type="button" className={`action results-victory-variant ${finished ? 'tertiary' : 'primary'}`} onClick={goHome}>Back home</button>
+      </footer>
+      {selected && <PlayerSheet player={selected} matchId={isPrivate ? undefined : store.matchId} onClose={() => setSelected(null)} />}
     </main>
   );
 }

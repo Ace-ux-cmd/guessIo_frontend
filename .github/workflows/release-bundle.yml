@@ -1,0 +1,48 @@
+name: Release Web Bundle
+
+# Every push to main publishes a new OTA bundle (OTA spec 3.4): a push to main is a live deployment.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Work out the bundle version
+        # major.minor from package.json, patch from the run number: 2.0.0 -> 2.0.<run>.
+        run: echo "BUNDLE_VERSION=$(node -p "require('./package.json').version.split('.').slice(0,2).join('.')").${{ github.run_number }}" >> "$GITHUB_ENV"
+
+      - name: Build web bundle
+        run: npm run build
+        env:
+          VITE_APP_VERSION: ${{ env.BUNDLE_VERSION }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_WS_URL: ${{ vars.VITE_WS_URL }}
+          VITE_SUPPORT_GOOGLE_FORM_URL: ${{ vars.VITE_SUPPORT_GOOGLE_FORM_URL }}
+          VITE_OTA_REPO: ${{ github.repository }}
+
+      - name: Zip the build
+        # index.html must sit at the root of the zip (not inside dist/) for the updater to load it.
+        run: cd dist && zip -r ../bundle.zip .
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: ${{ env.BUNDLE_VERSION }}
+          files: bundle.zip

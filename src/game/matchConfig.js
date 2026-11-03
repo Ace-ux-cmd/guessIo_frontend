@@ -30,14 +30,6 @@ export const DEFAULT_ROUND_TIER = 'EASY';
 
 export const MAX_ROUNDS_PER_MATCH = 3; // best-of-three
 
-export function getConfigForPlayerCount(playerCount) {
-  const config = PLAYER_COUNT_CONFIG[playerCount];
-  if (!config) {
-    throw new Error(`Unsupported player count: ${playerCount}`);
-  }
-  return config;
-}
-
 export function getConfigForRoundTier(tier) {
   const config = ROUND_TIER_CONFIG[tier];
   if (!config) {

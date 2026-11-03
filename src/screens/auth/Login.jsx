@@ -6,6 +6,7 @@ import LoginDemoBoard from '../../components/ui/LoginDemoBoard';
 import { Banner } from '../../components/ui/Feedback';
 import { useAuthStore } from '../../stores/authStore';
 import { getGoogleLoginUrl } from '../../api/auth.api';
+import { isNative, startNativeGoogleSignIn } from '../../lib/native';
 import { TERMS_URL, PRIVACY_URL, DOWNLOAD_URL } from '../../constants/legalLinks';
 
 /**
@@ -36,6 +37,11 @@ export default function Login() {
   function startGoogle() {
     if (!agreed) return;
     setConnecting(true);
+    if (isNative()) {
+      // The system browser opens on top of the app; come back to the button if it is dismissed.
+      startNativeGoogleSignIn().catch(() => {}).finally(() => setTimeout(() => setConnecting(false), 1500));
+      return;
+    }
     window.location.assign(getGoogleLoginUrl());
   }
 
@@ -43,7 +49,7 @@ export default function Login() {
     <AuthShell
       title={fromGuest ? <>Save your progress<br />and play online.</> : <>Analyse → Outsmart<br />→ Crack The Code</>}
       sub={fromGuest
-        ? 'Rating, leaderboard, ranked matches and private rooms need an account.'
+        ? 'Rating, leaderboard, ranked matches, custom rooms and friends need an account.'
         : 'A guessing duel for 2 to 4 players. Ranked, casual or with friends.'}
       stage={<LoginDemoBoard />}
     >
@@ -55,13 +61,13 @@ export default function Login() {
         </div>
       )}
 
-      <label htmlFor="agreeCheck" className="flex items-start gap-3 text-xs text-mute leading-snug cursor-pointer">
+      <label htmlFor="agreeCheck" className="flex cursor-pointer items-start gap-3 text-xs leading-snug text-mute">
         <input
           type="checkbox"
           id="agreeCheck"
           checked={agreed}
           onChange={(e) => setAgreed(e.target.checked)}
-          className="mt-0.5 w-4 h-4 shrink-0 accent-[#12E060]"
+          className="mt-0.5 h-5 w-5 shrink-0 accent-[#8DFF39]"
         />
         <span>
           I agree to the{' '}
@@ -93,8 +99,8 @@ export default function Login() {
         Play as guest
       </Button>
 
-      <p className="text-xs text-mute text-center pt-1">New or returning, one tap. No password to remember.</p>
-      <p className="text-xs text-mute text-center">
+      <p className="pt-1 text-center text-xs text-mute">New or returning, one tap. No password to remember.</p>
+      <p className="text-center text-xs text-mute">
         Prefer your phone?{' '}
         <a className="underline" href={DOWNLOAD_URL} target="_blank" rel="noopener noreferrer">Download the mobile app</a>
       </p>

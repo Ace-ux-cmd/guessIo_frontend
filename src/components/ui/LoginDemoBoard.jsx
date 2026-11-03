@@ -211,29 +211,29 @@ export default function LoginDemoBoard() {
   }, []);
 
   return (
-    <div className="surface rounded-md border border-line w-full overflow-hidden" aria-hidden="true">
-      <div className="flex items-center justify-between px-4 pt-3 text-[11px] font-semibold">
+    <div className="card a-g w-full overflow-hidden" aria-hidden="true">
+      <div className="flex items-center justify-between px-4 pt-3 text-[0.7333rem] font-semibold">
         <span className="inline-flex items-center gap-2 text-g">
-          <span className="w-2 h-2 rounded-full bg-g animate-pulse" />
+          <span className="h-2 w-2 animate-pulse rounded-full bg-g" />
           Live simulation
         </span>
         <span className="text-mute tnum">Guess {guessCount}/{GUESS_LIMIT}</span>
       </div>
 
-      <div className="relative h-[292px]">
+      <div className="relative login-demo-stage">
         <div
           className={`absolute inset-x-0 top-0 bottom-9 flex flex-col justify-end gap-1.5 px-4 pt-3 overflow-hidden transition-opacity duration-300 ${boardFading ? "opacity-0" : "opacity-100"}`}
         >
           {rows.map((row) => (
             <div className="flex items-center gap-3 animate-rise shrink-0" key={row.guessNum}>
-              <div className="w-6 shrink-0 text-center text-[11px] text-mute tnum">#{row.guessNum}</div>
+              <div className="w-6 shrink-0 text-center text-[0.7333rem] text-mute tnum">#{row.guessNum}</div>
               <div className="flex gap-1.5">
                 {row.cells.map((cell, i) => (
                   <Tile
                     key={i}
                     state={cell.state ? STATE_CLASS[cell.state] : "raw"}
                     className={cell.flipping ? "flip" : ""}
-                    size="w-11 h-11 text-xl"
+                    size="w-11 h-12 text-xl"
                     role="presentation"
                     aria-label={undefined}
                   >
@@ -249,14 +249,14 @@ export default function LoginDemoBoard() {
         <div className={`phrase-stage absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-300 ${phraseActive ? "opacity-100" : "opacity-0"}`}>
           {phrase && (
             <span
-              className={`phrase absolute font-display font-black text-center text-ink ${phrase.wordmark ? "" : "text-2xl tracking-wide"} ${phrase.anim === "in" ? "swipe-in" : "swipe-out"}`}
+              className={`phrase absolute font-display font-bold text-center text-white ${phrase.wordmark ? "" : "text-3xl tracking-wide"} ${phrase.anim === "in" ? "swipe-in" : "swipe-out"}`}
             >
-              {phrase.wordmark ? <Wordmark className="text-4xl" /> : phrase.text}
+              {phrase.wordmark ? <Wordmark className="h-14" /> : phrase.text}
             </span>
           )}
         </div>
 
-        <div className="absolute inset-x-0 bottom-0 h-9 flex items-center justify-center border-t border-line text-[11px] text-mute font-semibold">
+        <div className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center border-t-2 border-line text-[0.7333rem] font-bold text-mute">
           {scanStatus}
         </div>
       </div>
