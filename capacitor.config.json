@@ -1,6 +1,6 @@
 {
   "appId": "io.guessio.app",
-  "appName": "guessIo",
+  "appName": "GuessIo",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"
