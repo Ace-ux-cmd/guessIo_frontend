@@ -18,7 +18,41 @@
     />
   </head>
   <body class="bg-bg text-ink font-sans antialiased">
-    <div id="root"></div>
+    <!--
+      Static copy of src/screens/Splash.jsx. It paints as soon as the page and its stylesheet load, before the
+      JavaScript bundle runs, so launching the app shows the splash screen right away. React replaces it on
+      first render. Keep the markup in sync with Splash.jsx.
+    -->
+    <div id="root">
+      <div class="login-page">
+        <main class="arena" aria-label="guessIo loading screen">
+          <div class="login-noise"></div>
+          <div class="login-scanline"></div>
+          <div class="login-topbar">
+            <span class="login-status">System online</span>
+            <span class="login-signal">Initializing…</span>
+          </div>
+
+          <span class="login-code-stream login-stream-a">05 17 42 08 93 &nbsp;&middot;&nbsp; 6 1 8 4 0 &nbsp;&middot;&nbsp; 77 03 28</span>
+          <span class="login-code-stream login-stream-b">4 9 2 7 1 &nbsp;&middot;&nbsp; MATCHMAKING // READY &nbsp;&middot;&nbsp; 8 0 6 3</span>
+          <span class="login-corner login-corner-tl"></span>
+          <span class="login-corner login-corner-br"></span>
+
+          <section class="login-stage">
+            <div class="login-orbit" aria-hidden="true"></div>
+            <div class="login-logo-lockup">
+              <img class="login-logo" src="/logo.png" alt="guessIo" />
+              <p class="login-tagline">Analyse. <span>Outsmart.</span> Crack the code.</p>
+            </div>
+          </section>
+
+          <div class="login-bottomline">
+            <span>Multiplayer code-breaking arena</span>
+            <span>guessIo // <strong>V2.0.0</strong></span>
+          </div>
+        </main>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -40,6 +40,22 @@ const iconResDir = 'native-assets/android/res';
 if (!existsSync(iconResDir)) throw new Error(`Launcher icons not found at ${iconResDir}`);
 cpSync(iconResDir, 'android/app/src/main/res', { recursive: true });
 
+// Launch screen: Android shows its own screen before the web view exists. Give it the app background colour and
+// no icon, so it blends into the full-screen splash in index.html instead of showing a small icon on a mismatched colour.
+const stylesPath = 'android/app/src/main/res/values/styles.xml';
+let styles = readFileSync(stylesPath, 'utf8');
+if (!styles.includes('windowSplashScreenBackground')) {
+  const launchStyle = /(<style\s+name="AppTheme\.NoActionBarLaunch"[^>]*>)([\s\S]*?)(<\/style>)/;
+  if (!launchStyle.test(styles)) throw new Error('Could not find AppTheme.NoActionBarLaunch in styles.xml');
+  styles = styles.replace(launchStyle, (_match, open, _body, close) =>
+    `${open}
+        <item name="android:background">@color/splash_background</item>
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_transparent</item>
+    ${close}`);
+  writeFileSync(stylesPath, styles);
+}
+
 // Push needs the Firebase config the CI step writes from the GOOGLE_SERVICES_JSON_BASE64 secret.
 const pushReady = existsSync('android/app/google-services.json');
 if (!pushReady) console.warn('WARNING: android/app/google-services.json is missing. The APK will build, but notifications cannot work in it (see ANDROID_BUILD.md).');

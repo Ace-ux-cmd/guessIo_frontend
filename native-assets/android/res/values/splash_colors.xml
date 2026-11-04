@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Same as the app background (#05070F) so the launch screen blends into the web splash screen. -->
+    <color name="splash_background">#05070F</color>
+</resources>
