@@ -5,10 +5,10 @@
  */
 const SITE_URL = 'https://guessio.online';
 
-export const TERMS_URL = `${SITE_URL}/terms-of-service.html`;
-export const PRIVACY_URL = `${SITE_URL}/privacy-policy.html`;
-export const DOCS_URL = `${SITE_URL}/doc.html`;
-export const DOWNLOAD_URL = `${SITE_URL}/download.html`;
+export const TERMS_URL = `${SITE_URL}/terms-of-service`;
+export const PRIVACY_URL = `${SITE_URL}/privacy-policy`;
+export const DOCS_URL = `${SITE_URL}/doc`;
+export const DOWNLOAD_URL = `${SITE_URL}/download`;
 
 /**
  * Appeals fallback contact for a suspended/banned account reached via the
