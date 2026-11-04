@@ -9,6 +9,21 @@ export const isNative = () => {
   }
 };
 
+/**
+ * Google's avatar servers (lh3.googleusercontent.com) refuse requests whose
+ * Referer is the app's https://localhost origin, so those pictures stayed
+ * blank in the app while loading fine on the website. The app sends no
+ * Referer at all. Avatars are CSS backgrounds, so this must be the page-wide
+ * policy rather than an attribute on an <img>. Call once before first render.
+ */
+export function hideReferrerInApp() {
+  if (!isNative() || document.querySelector('meta[name="referrer"]')) return;
+  const meta = document.createElement('meta');
+  meta.name = 'referrer';
+  meta.content = 'no-referrer';
+  document.head.appendChild(meta);
+}
+
 /** Custom URL scheme the backend redirects to after Google sign-in (APP_DEEP_LINK_SCHEME, matches appId). */
 export const APP_SCHEME = 'io.guessio.app';
 

@@ -6,6 +6,9 @@ import './styles/ui.css';
 import './styles/app.css';
 import './styles/template.css';
 import { markBundleHealthy } from './lib/ota';
+import { hideReferrerInApp } from './lib/native';
+
+hideReferrerInApp();
 
 const queryClient = new QueryClient({
   defaultOptions: {
