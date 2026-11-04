@@ -1,4 +1,4 @@
-# guessIo Android app (APK) and OTA updates
+# GuessIo Android app (APK) and OTA updates
 
 The APK is a Capacitor shell around this web app. Web changes reach players through OTA bundle updates; the APK is only rebuilt for native-level changes (OTA spec v2.0.0).
 
