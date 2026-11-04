@@ -1,7 +1,7 @@
 // Run after `npx cap add android`. Applies the project-specific parts of the
 // native shell: the io.guessio.app:// sign-in link, the notification permission, version numbers, and release signing.
 // Env: ANDROID_VERSION_NAME, ANDROID_VERSION_CODE; KEYSTORE_PATH, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD (signing).
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const manifestPath = 'android/app/src/main/AndroidManifest.xml';
 const gradlePath = 'android/app/build.gradle';
@@ -33,6 +33,12 @@ if (!manifest.includes('android.permission.POST_NOTIFICATIONS')) {
   if (next === manifest) throw new Error('Could not find </manifest> in AndroidManifest.xml');
   writeFileSync(manifestPath, next);
 }
+
+// Launcher icon: replaces Capacitor's default icons (mipmap PNGs and the adaptive icon background colour) with
+// the guessIo ones. Regenerate them with tools/generate-android-icons.py when the artwork changes.
+const iconResDir = 'native-assets/android/res';
+if (!existsSync(iconResDir)) throw new Error(`Launcher icons not found at ${iconResDir}`);
+cpSync(iconResDir, 'android/app/src/main/res', { recursive: true });
 
 // Push needs the Firebase config the CI step writes from the GOOGLE_SERVICES_JSON_BASE64 secret.
 const pushReady = existsSync('android/app/google-services.json');
