@@ -40,6 +40,6 @@ Google OAuth for the app needs nothing new: sign-in opens in the phone's browser
 ## Notes
 
 - `android/` is generated in CI (`npx cap add android`, then `scripts/prepare-android.mjs`). To build locally you need Node 20, JDK 21 and the Android SDK: `npm run build && npx cap add android && npm run android:prepare && npx cap sync android`.
-- Sessions are kept in sessionStorage (existing behavior), so a player who fully closes the app signs in again on the next launch.
+- In the app, sign-in tokens are kept in the WebView's localStorage, so a player who closes the app stays signed in until the backend expires the refresh token. On the web they stay in sessionStorage (one tab, one session). See `src/lib/tokenStorage.js`. This is a web-bundle change, so it ships over OTA with no APK rebuild.
 - Web push is not available in the app shell (needs a native push provider).
 - The app uses Capacitor's default launcher icon until you generate one (e.g. with `@capacitor/assets` from `public/icon-512.png`).

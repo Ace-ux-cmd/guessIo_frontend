@@ -1,12 +1,15 @@
 import { create } from 'zustand';
+import { readToken, writeToken, removeToken } from '../lib/tokenStorage';
 
 const ACCESS_TOKEN_KEY = 'guessio_access_token';
 const REFRESH_TOKEN_KEY = 'guessio_refresh_token';
 
 export const useAuthStore = create((set, get) => ({
   user: null,
-  accessToken: sessionStorage.getItem(ACCESS_TOKEN_KEY) || null,
-  refreshToken: sessionStorage.getItem(REFRESH_TOKEN_KEY) || null,
+  // Web keeps these per tab (sessionStorage); the Android app keeps them
+  // until the backend expires them (see lib/tokenStorage.js).
+  accessToken: readToken(ACCESS_TOKEN_KEY),
+  refreshToken: readToken(REFRESH_TOKEN_KEY),
   // A one-shot notice to surface on the next Login screen render (e.g.
   // "logged out because this account signed in elsewhere"). Consumed and
   // cleared by whatever screen displays it.
@@ -20,15 +23,15 @@ export const useAuthStore = create((set, get) => ({
   isAuthenticated: () => Boolean(get().accessToken),
 
   setSession: ({ user, accessToken, refreshToken }) => {
-    if (accessToken) sessionStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-    if (refreshToken) sessionStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+    if (accessToken) writeToken(ACCESS_TOKEN_KEY, accessToken);
+    if (refreshToken) writeToken(REFRESH_TOKEN_KEY, refreshToken);
     set({ user: user ?? get().user, accessToken, refreshToken });
   },
 
   /** @param {string} [message] Optional notice to show on the next login screen. */
   clearSession: (message) => {
-    sessionStorage.removeItem(ACCESS_TOKEN_KEY);
-    sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+    removeToken(ACCESS_TOKEN_KEY);
+    removeToken(REFRESH_TOKEN_KEY);
     set({ user: null, accessToken: null, refreshToken: null, sessionMessage: message ?? null });
   },
 
