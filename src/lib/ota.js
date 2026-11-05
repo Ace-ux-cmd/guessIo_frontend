@@ -10,7 +10,9 @@ import { APP_VERSION, compareVersions } from './version';
  * Releases come from GitHub: the latest non-prerelease holds bundle.zip, and its
  * name is the bundle version (see .github/workflows/release-bundle.yml).
  */
-const REPO = import.meta.env.VITE_OTA_REPO; // "owner/repo", set by the workflows
+// CI supplies this for forks, while the production app keeps working when an
+// APK is built locally without environment variables.
+const REPO = import.meta.env.VITE_OTA_REPO || 'Ace-ux-cmd/guessIo_frontend';
 const SAFE_ROUTES = new Set(['/', '/login', '/dashboard', '/guest-home']);
 
 let pending = null; // a downloaded bundle waiting for a safe screen
@@ -43,7 +45,10 @@ async function latestRelease() {
       headers: { Accept: 'application/vnd.github+json' },
       signal: controller.signal,
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[OTA] GitHub release check failed (${res.status}).`);
+      return null;
+    }
     const release = await res.json();
     const asset = (release.assets || []).find((a) => a.name === 'bundle.zip');
     const version = String(release.name || '').trim();
@@ -69,8 +74,9 @@ export async function checkForBundleUpdate() {
       pending = bundle;
       await CapacitorUpdater.next(bundle); // otherwise applies on the next launch
     }
-  } catch {
+  } catch (error) {
     // Offline, rate-limited or a bad download: stay on the current bundle and try next launch.
+    console.warn('[OTA] Bundle update was not applied.', error);
   }
 }
 

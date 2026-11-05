@@ -12,7 +12,7 @@ const { version } = JSON.parse(readFileSync(new URL('./package.json', import.met
 function exactConnectSrc(env) {
   const origins = new Set(["'self'"]);
   // The app shell checks GitHub for new OTA bundles (see src/lib/ota.js).
-  if (env.VITE_OTA_REPO) origins.add('https://api.github.com');
+  origins.add('https://api.github.com');
   for (const value of [env.VITE_API_BASE_URL, env.VITE_WS_URL]) {
     if (!value) continue;
     try {
