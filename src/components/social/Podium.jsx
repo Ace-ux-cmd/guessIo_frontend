@@ -19,7 +19,7 @@ export default function Podium({ items, unit = 'rating', onSelect }) {
         const item = items[index];
         const first = index === 0;
         if (!item) return <div key={index} role="presentation" className="player" />;
-        const ringColor = first ? '#FFBA37' : index === 2 ? '#9C4DFF' : '#00E5FF';
+        const ringColor = first ? '#FFBA37' : index === 2 ? '#CD7F32' : '#C0C0C0';
         return (
           <article key={index} role="listitem" className="player">
             {first && <span className="crown" aria-label="First place">&#9819;</span>}
@@ -32,7 +32,7 @@ export default function Podium({ items, unit = 'rating', onSelect }) {
               <strong className="player-name">{item.username}</strong>
             )}
             <span className="player-score"><strong className="tnum">{Number(item.value).toLocaleString()}</strong> {unit}</span>
-            <div className="rank-block">{index + 1}</div>
+            <div className="rank-block"><span>{index + 1}</span></div>
           </article>
         );
       })}

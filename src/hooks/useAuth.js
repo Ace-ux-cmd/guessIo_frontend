@@ -34,10 +34,15 @@ export function useCompleteOnboarding() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: authApi.completeOnboarding,
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setSession(data);
       markNewAccount(data?.user?.id);
-      queryClient.invalidateQueries({ queryKey: ['me'] });
+      const user = await queryClient.fetchQuery({
+        queryKey: ['me'],
+        queryFn: profileApi.getCurrentUser,
+        staleTime: 0,
+      });
+      setSession({ ...data, user });
     },
   });
 }
@@ -79,4 +84,3 @@ export function useAchievements() {
     staleTime: 60_000,
   });
 }
-
