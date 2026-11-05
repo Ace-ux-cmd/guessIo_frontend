@@ -11,7 +11,7 @@
   "plugins": {
     "CapacitorUpdater": {
       "autoUpdate": false,
-      "resetWhenUpdate": false
+      "resetWhenUpdate": true
     }
   }
 }
