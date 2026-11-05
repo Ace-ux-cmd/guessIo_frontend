@@ -72,6 +72,7 @@ export default function Dashboard() {
   const won = stats?.matchesWon ?? 0;
   const winRate = played ? Math.round((won / played) * 100) : null;
   const name = profile?.displayName || user.username;
+  const profileRankColor = profile?.rank === 1 ? '#FFBA37' : profile?.rank === 2 ? '#C0C0C0' : profile?.rank === 3 ? '#CD7F32' : '#00E5FF';
 
   return (
     <>
@@ -85,7 +86,13 @@ export default function Dashboard() {
             <button ref={helpRef} type="button" onClick={() => setHowToOpen(true)} className="avatar" aria-label="How to play" style={{ width: '2rem', height: '2rem', fontSize: '0.8rem' }}>?</button>
             {daily && <Link to="/daily" replace className="avatar" style={{ width: 'auto', padding: '0 0.7rem', borderRadius: '0.6rem', fontSize: '0.6rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Daily</Link>}
             <Link to="/profile" replace className="home-profile-link" aria-label="Open profile">
-              <Avatar name={name || user.username} url={profile?.avatarUrl || user?.avatarUrl} size={34} />
+              <Avatar
+                name={name || user.username}
+                url={profile?.avatarUrl || user?.avatarUrl}
+                size={34}
+                ringColor={profileRankColor}
+                style={{ borderColor: profileRankColor }}
+              />
             </Link>
           </div>
         </header>

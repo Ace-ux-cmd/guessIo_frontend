@@ -741,6 +741,20 @@ h1 {
   box-shadow: 0 0 18px var(--cyan);
   content: "";
 }
+.podium-stage::after,
+.podium.rank-variant::before {
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  bottom: 1.4rem;
+  left: -45%;
+  width: 18%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  content: "";
+  pointer-events: none;
+  transform: skewX(-18deg);
+  animation: podium-sweep 5.5s ease-in-out infinite;
+}
 
 .player {
   position: relative;
@@ -889,8 +903,15 @@ h1 {
   0%, 55%, 100% { background-position: 100% 0; }
   72% { background-position: -45% 0; }
 }
+@keyframes podium-sweep {
+  0%, 62% { left: -45%; opacity: 0; }
+  70% { opacity: 0.7; }
+  82%, 100% { left: 125%; opacity: 0; }
+}
 @media (prefers-reduced-motion: reduce) {
-  .rank-block > span { animation: none; }
+  .rank-block > span,
+  .podium-stage::after,
+  .podium.rank-variant::before { animation: none; }
 }
 
 .home-stats {
@@ -2882,6 +2903,9 @@ h1.custom-room-variant {
   background: linear-gradient(90deg, transparent, var(--cyan), transparent);
   box-shadow: 0 0 16px var(--cyan);
   content: "";
+}
+.podium.rank-variant::before {
+  bottom: 1.25rem;
 }
 
 .podium-player {
@@ -5652,9 +5676,7 @@ h1:not(.auth-title):not(.sr-only) {
 .top-ten.default::before {
   content: none;
 }
-.avatar.rank-variant {
-  overflow: hidden;
-}
+.avatar.rank-variant { overflow: hidden; }
 
 /* Achievement marks sit in the exact centre of their badge. The text rules above
    are scoped to the copy block, so they can no longer turn the badge into a block box. */
