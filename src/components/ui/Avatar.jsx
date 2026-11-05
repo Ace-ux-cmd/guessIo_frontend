@@ -43,7 +43,7 @@ export default function Avatar({ name = '?', size = 36, url, className = '', act
           decoding="async"
           referrerPolicy="no-referrer"
           onError={() => setImageFailed(true)}
-          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'inherit', pointerEvents: 'none' }}
         />
       )}
       {(!url || imageFailed) && (

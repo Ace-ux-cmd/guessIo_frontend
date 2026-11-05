@@ -2907,13 +2907,13 @@ h1.custom-room-variant {
   width: 3.55rem;
   height: 3.55rem;
   place-items: center;
-  border: 2px solid var(--cyan);
+  border: 2px solid #c0c0c0;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%);
-  color: var(--cyan);
+  color: #c0c0c0;
   font-size: 1.15rem;
   font-weight: 700;
-  box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+  box-shadow: 0 0 20px rgba(192, 192, 192, 0.3);
 }
 .center .avatar.rank-variant {
   width: 4.65rem;
@@ -2925,10 +2925,10 @@ h1.custom-room-variant {
   box-shadow: 0 0 28px rgba(255, 186, 55, 0.34);
 }
 .podium-player:last-child .avatar.rank-variant {
-  border-color: var(--violet);
-  background: radial-gradient(circle at 35% 20%, #664a96, #211932 62%);
-  color: var(--violet);
-  box-shadow: 0 0 20px rgba(156, 77, 255, 0.3);
+  border-color: #cd7f32;
+  background: radial-gradient(circle at 35% 20%, #8a5528, #211932 62%);
+  color: #cd7f32;
+  box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
 }
 .podium-player .avatar.rank-variant::after {
   position: absolute;
@@ -2977,7 +2977,7 @@ h1.custom-room-variant {
     rgba(38, 48, 82, 0.8),
     rgba(17, 23, 45, 0.7)
   );
-  color: var(--cyan);
+  color: #c0c0c0;
   font-size: 2rem;
   font-weight: 700;
 }
@@ -2994,7 +2994,7 @@ h1.custom-room-variant {
 }
 .podium-player:last-child .podium-block {
   height: 3.25rem;
-  color: var(--violet);
+  color: #cd7f32;
 }
 
 .leaderboard {
@@ -5653,7 +5653,7 @@ h1:not(.auth-title):not(.sr-only) {
   content: none;
 }
 .avatar.rank-variant {
-  overflow: visible;
+  overflow: hidden;
 }
 
 /* Achievement marks sit in the exact centre of their badge. The text rules above

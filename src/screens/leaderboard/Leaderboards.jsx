@@ -64,7 +64,7 @@ export default function Leaderboards() {
                       url={e.avatarUrl}
                       size={first ? 80 : 62}
                       className="avatar rank-variant"
-                      ringColor={index === 0 ? '#FFBA37' : index === 2 ? '#9C4DFF' : '#00E5FF'}
+                      ringColor={index === 0 ? '#FFBA37' : index === 2 ? '#CD7F32' : '#C0C0C0'}
                     />
                     {e.isBot ? (
                       <span className="podium-name">{e.username}</span>
