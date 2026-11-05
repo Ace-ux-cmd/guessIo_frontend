@@ -20,10 +20,15 @@ export default function Podium({ items, unit = 'rating', onSelect }) {
         const first = index === 0;
         if (!item) return <div key={index} role="presentation" className="player" />;
         const ringColor = first ? '#FFBA37' : index === 2 ? '#CD7F32' : '#C0C0C0';
+        const frameStyle = {
+          borderColor: ringColor,
+          color: ringColor,
+          boxShadow: `0 0 ${first ? 30 : 20}px ${ringColor}61`,
+        };
         return (
           <article key={index} role="listitem" className="player">
             {first && <span className="crown" aria-label="First place">&#9819;</span>}
-            <div className="portrait">
+            <div className="portrait" style={frameStyle}>
               <Avatar name={item.username} url={item.avatarUrl} size={first ? 80 : 62} ringColor={ringColor} />
             </div>
             {onSelect && !item.isBot ? (

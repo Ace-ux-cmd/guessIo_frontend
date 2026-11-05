@@ -46,6 +46,7 @@ export default function Profile() {
   const preview = [...achievements].sort((a, b) => Number(b.unlocked) - Number(a.unlocked)).slice(0, PREVIEW_COUNT);
   const banner = achievementsData?.topRankBanner;
   const bannerRankTone = banner?.rank === 1 ? 'gold' : banner?.rank === 2 ? 'silver' : banner?.rank === 3 ? 'bronze' : 'default';
+  const profileRankColor = banner?.rank === 1 ? '#FFBA37' : banner?.rank === 2 ? '#C0C0C0' : banner?.rank === 3 ? '#CD7F32' : '#00E5FF';
   const joined = formatJoined(user?.createdAt);
   const streak = user?.dailyStreak;
   const requests = user?.friends?.incomingRequests ?? 0;
@@ -60,8 +61,8 @@ export default function Profile() {
             url={p?.avatarUrl}
             size={90}
             className="profile-avatar"
-            ringColor="#00E5FF"
-            style={{ borderColor: 'var(--cyan)', ...(!p?.avatarUrl ? { background: 'radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%)' } : {}) }}
+            ringColor={profileRankColor}
+            style={{ borderColor: profileRankColor, ...(!p?.avatarUrl ? { background: 'radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%)' } : {}) }}
           />
           <div className="name-row">
             <h1 className="profile-variant">{name}</h1>

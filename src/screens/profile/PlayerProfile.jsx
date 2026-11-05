@@ -105,6 +105,7 @@ export default function PlayerProfile() {
     : friendCanAccept ? `Accept friend request from ${name}`
       : p.canRequest ? `Send friend request to ${name}` : `Friend requests unavailable for ${name}`;
   const rankTone = p.rank === 1 ? 'gold' : p.rank === 2 ? 'silver' : p.rank === 3 ? 'bronze' : 'default';
+  const profileRankColor = p.rank === 1 ? '#FFBA37' : p.rank === 2 ? '#C0C0C0' : p.rank === 3 ? '#CD7F32' : '#00E5FF';
 
   const stats = p.statistics;
   const played = stats?.matchesPlayed ?? 0;
@@ -122,8 +123,8 @@ export default function PlayerProfile() {
           url={p.avatarUrl}
           size={90}
           className="profile-avatar"
-          ringColor="#00E5FF"
-          style={{ borderColor: 'var(--cyan)', ...(!p.avatarUrl ? { background: 'radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%)' } : {}) }}
+          ringColor={profileRankColor}
+          style={{ borderColor: profileRankColor, ...(!p.avatarUrl ? { background: 'radial-gradient(circle at 35% 20%, #5d74b9, #171d3a 62%)' } : {}) }}
         />
         <div className="name-row player-profile-name-row">
           <div className="player-name-anchor">
